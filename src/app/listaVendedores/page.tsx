@@ -1,9 +1,9 @@
 "use client";
 
 import Link from 'next/link';
-import { useFetchData } from '../../functions/axiosFunctionGet';
-import { Header } from '../../ReusableComponents/Header';
-import { Vendedor } from "../../types";
+import { useFetchData } from '../functions/axiosFunctionGet';
+import { Header } from '../ReusableComponents/Header';
+import { Vendedor } from "../types";
 import { Users } from "lucide-react";
 import { useState } from 'react';
 

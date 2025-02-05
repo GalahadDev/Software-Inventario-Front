@@ -46,7 +46,7 @@ const Login = () => {
         if (response.rol === "vendedor") {
           router.push("/dashvendedor");
         } else if (response.rol === "administrador") {
-          router.push(`/listaVendedores/${response.usuario_id}`);
+          router.push("/listaVendedores");
         }
       } else {
         setErrorMessage("Error: No se recibió token");

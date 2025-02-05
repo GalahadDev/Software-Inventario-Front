@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { vendedorSchema } from '../validaciones/vendorSchema'; 
 import { z } from 'zod';  
 import { Header } from "../ReusableComponents/Header"
+import {  crearUsuario } from "../functions/functionPost";
 
 const CrearVendedor = () => {
   const [formData, setFormData] = useState({
@@ -24,12 +25,14 @@ const CrearVendedor = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validar el formulario usando Zod
+    
+    crearUsuario(formData)
+    console.log(formData)
     try {
       vendedorSchema.parse(formData);
-      // Si la validación es exitosa, continuar con el registro
+    
       console.log("Formulario enviado:", formData);
+
     } catch (err) {
       if (err instanceof z.ZodError) {
         const validationErrors: Record<string, string> = {};

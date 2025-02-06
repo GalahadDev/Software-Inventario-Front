@@ -27,7 +27,9 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   
   const token = usuario?.token || null;
 
-  // Efecto para notificaciones
+
+
+  
   useEffect(() => {
     if (newOrder) {
       toast.info("¡Nuevo pedido recibido!", {

@@ -2,17 +2,22 @@
 
 import { api } from './api'; // Importamos la instancia de Axios configurada
 import { Usuario } from "../types"
-
+import  axios  from 'axios';
 
 
 // Función para crear un usuario
+// userService.ts
 export const crearUsuario = async (usuarioData: Usuario) => {
   try {
-    // Realiza la solicitud POST para crear un nuevo usuario
     const response = await api.post('/users', usuarioData);
-    return response.data; // Devuelve los datos de la respuesta (generalmente, el usuario creado)
+    console.log('Usuario creado:', response.data); // ❌ Quita el .error (solo si la API lo incluye)
+    return response.data; 
   } catch (error) {
-    console.error('Error al crear el usuario:', error);
-    throw error; // Propaga el error para ser manejado donde se llame a esta función
+    if (axios.isAxiosError(error)) {
+      console.error('Error del servidor:', error.response?.data); // 👀 Mensaje detallado aquí
+    } else {
+      console.error('Error inesperado:', error);
+    }
+    throw error; // Propaga el error para manejarlo donde se llame a la función
   }
 };

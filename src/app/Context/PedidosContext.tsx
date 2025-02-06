@@ -23,6 +23,8 @@ interface PedidosContextType {
 const PedidosContext = createContext<PedidosContextType | undefined>(undefined);
 
 export const usePedidosContext = (): PedidosContextType => {
+
+  
   const context = useContext(PedidosContext);
   if (!context) {
     throw new Error('usePedidosContext debe ser usado dentro de un PedidosProvider');
@@ -38,11 +40,11 @@ export const PedidosProvider: React.FC<PedidosProviderProps> = ({ children }) =>
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { newOrder } = useWebSocket(); // Obtenemos el nuevo pedido del WebSocket
+  const { newOrder } = useWebSocket(); 
 
   const { data, error: apiError, loading: apiLoading } = useFetchData<Pedido[]>("/pedidos");
 
-  // 1. Efecto principal con limpieza
+ 
   useEffect(() => {
     let isMounted = true;
 

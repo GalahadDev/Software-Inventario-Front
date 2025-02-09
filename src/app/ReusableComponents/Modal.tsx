@@ -8,7 +8,7 @@ export const Modal: React.FC<ModalProps> = ({ pedido, onClose, onSave, loading }
   const [monto, setMonto] = useState<number | null>(pedido.Monto || null);
   const [fletero, setFletero] = useState<string>(pedido.Fletero || "");
   const [estado, setEstado] = useState(pedido.Estado || "");
-  const [Atendido, setAtendido] = useState(pedido.atendido || false);
+  const [Atendido, setAtendido] = useState(pedido.Atendido || false);
   
   const handleSave = () => {
     onSave(pedido.ID, monto ?? 0, fletero, estado, Atendido);

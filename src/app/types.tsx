@@ -11,7 +11,8 @@ export interface Pedido {
     Fletero:string;
     Estado: string 
     FechaCreacion: Date
-    atendido: boolean
+    Atendido: boolean
+    UsuarioID: string
   }
 
   
@@ -47,7 +48,7 @@ export type Usuario = {
 export type SaleForm = {
   nombre: string;
   descripcion: string;
-  precio: number;
+  precio: number | null;
   observaciones: string;
   forma_pago: string;
   direccion: string;

@@ -39,8 +39,8 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Copyright */}
-        <div className="text-sm text-slate-600 dark:text-slate-400">
-          © {currentYear} Stoic Development. <br/> Front-End-Dev: NestorLlach. <br/>Back-End-Dev: Samuel Llach.
+        <div className="text-sm text-slate-600 dark:text-slate-400 text-center">
+          © {currentYear} Stoic Development. <br/> Front-End-Dev: NestorLlach. Back-End-Dev: Samuel Llach.
         </div>
       </div>
     </div>

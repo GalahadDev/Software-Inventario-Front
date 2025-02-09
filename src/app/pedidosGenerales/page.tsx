@@ -21,12 +21,24 @@ const PedidosPage = () => {
   const [totalMonto, setTotalMonto] = useState(0);
   const { updateData, loading: updateLoading } = useUpdateData();
   const [searchTerm, setSearchTerm] = useState("");
-  const { pedidos, addPedido, loading, error } = usePedidosContext();
+  const { pedidos, setPedidosList, addPedido, loading, error } = usePedidosContext();
   const { newOrder } = useWebSocket();
   const { markAsAttended } = usePedidoActions();
   const [localPedidos, setLocalPedidos] = useState<Pedido[]>([]);
+  
+  const [errorMessage, setErrorMessage] = useState<string | null>("");
+ 
+  
+  const bgChange = () => {
+    if (pedidos.length > 0 && pedidos[0].Atendido === false) {
+        return 'bg-yellow-200 animate-pulse';
+    } else {  
+        return 'bg-white';
+    }
+};
 
   useEffect(() => {
+    console.log("Nuevo pedido recibido:", newOrder);
     if (newOrder) {
       addPedido(newOrder);
     }
@@ -79,25 +91,26 @@ const PedidosPage = () => {
 
   const handleCardClick = async (pedido: Pedido) => {
     try {
-    
-      const updatedPedidos = localPedidos.map(p => 
-        p.ID === pedido.ID ? { ...p, atendido: true } : p
-      );
-      setLocalPedidos(updatedPedidos);
-console.log("Pedido actualizado:", pedido);
       await markAsAttended(pedido.ID);
-      console.log("Pedido actualizado:", pedido);
-      setSelectedPedido({ ...pedido, atendido: true });
+  
+      // Crear una copia del array con el pedido actualizado
+      const updatedPedidos = pedidos.map(p => 
+        p.ID === pedido.ID ? { ...p, Atendido: true } : p
+      );
+  
+      // Actualizar el contexto global con la nueva lista
+      setPedidosList(updatedPedidos);
+  
+      // Actualizar el estado local también
+      setLocalPedidos(updatedPedidos);
+  
+      setSelectedPedido({ ...pedido, Atendido: true });
       setShowModal(true);
     } catch (error) {
-      // Revertir cambios si falla
-      const originalPedidos = localPedidos.map(p => 
-        p.ID === pedido.ID ? { ...p, atendido: false } : p
-      );
-      setLocalPedidos(originalPedidos);
       console.error("Error al actualizar:", error);
     }
   };
+  
 
   const handleSendToWhatsApp = (pedido: Pedido) => {
     const mensaje = `Pedido: ${pedido.Nombre}\nDescripción: ${pedido.Descripcion}\nObservaciones: ${pedido.Observaciones}\nImagen: ${pedido.Imagen}`;
@@ -144,6 +157,30 @@ console.log("Pedido actualizado:", pedido);
     );
   }
 
+  const handleCalculateTotal = () => {
+    // Validar si las fechas de inicio y término han sido seleccionadas
+    if (!startDate || !endDate) {
+      setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
+      return;
+    }
+  
+    // Si ambas fechas están seleccionadas, realizar el cálculo
+    const total = filteredPedidos
+      .filter((pedido) => {
+        const pedidoFecha = new Date(pedido.FechaCreacion); 
+        const fechaInicioObj = new Date(startDate);
+        const fechaTerminoObj = new Date(endDate);
+  
+        // Filtrar solo los pedidos dentro del rango de fechas
+        return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
+      })
+      .reduce((sum, pedido) => sum + (pedido.Monto ?? 0), 0);
+  
+    setTotalMonto(total);
+    setIsModalOpen(true);
+    setErrorMessage(""); // Limpiar cualquier mensaje de error
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <header className="w-full fixed top-0 left-0 bg-white shadow-lg z-10">
@@ -189,7 +226,7 @@ console.log("Pedido actualizado:", pedido);
               <div
                 key={`${pedido.ID}-${pedido.Nombre}`}
                 className={`rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer transform origin-center ${
-                  pedido.atendido 
+                  pedido.Atendido 
                     ? 'bg-white' 
                     : 'bg-yellow-200 animate-pulse-scale'
                 }`}

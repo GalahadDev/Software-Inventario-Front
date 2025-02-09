@@ -35,48 +35,64 @@ function SalesMan() {
   // Handler especial para precio
   const handlePrecioChange = (e: ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    
-    // Validación 1: No permite números con ceros iniciales
-    if (/^0+[1-9]/.test(rawValue)) {
-      setErrorPrecio("El precio no puede comenzar con 0");
+  
+    // Si el campo está vacío, no mostramos error y simplemente actualizamos el estado
+    if (rawValue === "") {
+      setErrorPrecio(null);
+      setSales((prev) => ({
+        ...prev,
+        precio: null, // Aquí asignamos null en lugar de un string vacío
+      }));
       return;
     }
-    
-    // Validación 2: Números positivos
+  
+    // Convertimos el valor ingresado a número
     const numericValue = Number(rawValue);
+  
+    // Si el valor no es un número válido, no lo actualizamos
+    if (isNaN(numericValue)) {
+      setErrorPrecio("El precio debe ser un número válido");
+      return;
+    }
+  
+    // Validación de que el precio sea mayor a 0
     if (numericValue <= 0) {
       setErrorPrecio("El precio debe ser mayor a 0");
       return;
     }
-
-    // Si pasa las validaciones, actualiza el estado
+  
+    // Si todo está bien, actualizamos el estado sin mostrar error
     setErrorPrecio(null);
-    setSales(prev => ({
+    setSales((prev) => ({
       ...prev,
-      precio: numericValue
+      precio: numericValue,
     }));
   };
+  
+  
+  
+  
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+  
     // Validación final antes de enviar
-    if (sales.precio <= 0) {
+    if (sales.precio === null || sales.precio <= 0) {
       setErrorPrecio("El precio debe ser mayor a 0");
       return;
     }
-
+  
     if (!usuario || !usuario.usuario_id) {
       console.error("No se ha encontrado el usuario o no está autenticado.");
       alert("No se ha encontrado el usuario o no está autenticado.");
       return;
     }
-
+  
     const updatedSales: SaleForm = {
       ...sales,
       usuario_id: usuario.usuario_id,
     };
-
+  
     try {
       const response = await sendSalesData(updatedSales);
       console.log("Pedido enviado con éxito:", response);
@@ -127,7 +143,7 @@ function SalesMan() {
                     type="number"
                     name="precio"
                     placeholder="Precio"
-                    value={sales.precio}
+                    value={sales.precio || ""}
                     onChange={handlePrecioChange}
                     className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                   />

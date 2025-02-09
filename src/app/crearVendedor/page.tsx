@@ -1,11 +1,10 @@
-// CrearVendedor.tsx
-"use client"
+"use client";
 import React, { useState } from 'react';
 import { vendedorSchema } from '../validaciones/vendorSchema'; 
 import { z } from 'zod';  
-import { Header } from "../ReusableComponents/Header"
-import {  crearUsuario } from "../functions/functionPost";
-
+import { Header } from "../ReusableComponents/Header";
+import { crearUsuario } from "../functions/functionPost";
+import { SuccessModal } from '../ReusableComponents/Exito'; 
 const CrearVendedor = () => {
   const [formData, setFormData] = useState({
     Nombre: "",
@@ -15,6 +14,8 @@ const CrearVendedor = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({}); // Estado para los errores
+  const [isOpen, setIsOpen] = useState(false); // Estado para controlar el modal
+  const [modalMessage, setModalMessage] = useState(""); // Mensaje para el modal
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -23,23 +24,37 @@ const CrearVendedor = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    crearUsuario(formData)
-    console.log(formData)
-    try {
-      vendedorSchema.parse(formData);
-    
-      console.log("Formulario enviado:", formData);
 
+    try {
+      // Validar el formulario con Zod
+      vendedorSchema.parse(formData);
+
+      // Intentar crear el usuario
+      const result = await crearUsuario(formData);
+
+      if (result.success) {
+        // Si la creación es exitosa, abrir el modal con un mensaje de éxito
+        setModalMessage("Vendedor creado exitosamente!");
+        setIsOpen(true);
+      } else {
+        // Si hay un error, abrir el modal con un mensaje de error
+        setModalMessage(result.error || "Error al crear el vendedor");
+        setIsOpen(true);
+      }
     } catch (err) {
       if (err instanceof z.ZodError) {
+        // Manejar errores de validación
         const validationErrors: Record<string, string> = {};
         err.errors.forEach(error => {
           validationErrors[error.path[0]] = error.message;
         });
         setErrors(validationErrors);
+      } else {
+        // Manejar otros errores
+        setModalMessage("Error inesperado al crear el vendedor");
+        setIsOpen(true);
       }
     }
   };
@@ -49,7 +64,7 @@ const CrearVendedor = () => {
     { name: 'Ver Pedidos', href: '/pedidosGenerales' },
     { name: 'Crear Vendedor', href: '/crearVendedor' },
     { name: "Crear Pedido", href: "/vendedorAdm" },
-    {name: "Usuarios", href: "/listaUsuarios"}, 
+    { name: "Usuarios", href: "/listaUsuarios" }, 
   ];
 
   return (
@@ -136,6 +151,13 @@ const CrearVendedor = () => {
           </div>
         </form>
       </div>
+
+      <SuccessModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        message={modalMessage}
+      />
+      
     </div>
   );
 };

@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { useGlobalState } from "./contextUser";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 
 interface WebSocketContextType {
   isConnected: boolean;
@@ -9,6 +9,7 @@ interface WebSocketContextType {
   sendMessage: (message: string | object) => void;
   messages: any[];
   newOrder: any | null;
+  disconnectWebSocket: () => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextType>({} as WebSocketContextType);
@@ -24,14 +25,22 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const [messages, setMessages] = useState<any[]>([]);
   const [newOrder, setNewOrder] = useState<any | null>(null);
   const ws = useRef<WebSocket | null>(null);
-  
+
   const token = usuario?.token || null;
+  const role = usuario?.rol || null;
+  const shouldReconnect = useRef(true);
 
-
-
-  
   useEffect(() => {
     if (newOrder) {
+      // Crear el sonido de la alarma
+      const alarmSound = new Audio("https://wduloqcugbdlwmladawq.supabase.co/storage/v1/object/public/imagenes-pedidos/src/lineage_2_quest.mp3");
+  
+      // Reproducir el sonido de la alarma
+      alarmSound.play().catch((error) => {
+        console.error("Error al reproducir el sonido de la alarma:", error);
+      });
+  
+      // Mostrar la notificación Toast
       toast.info("¡Nuevo pedido recibido!", {
         position: "bottom-right",
         autoClose: 3000,
@@ -40,7 +49,9 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         pauseOnHover: true,
         draggable: true,
       });
-      setNewOrder(null); // Limpiar después de mostrar
+  
+      // Asegúrate de limpiar el estado después de mostrar el toast
+      setNewOrder(null); 
     }
   }, [newOrder]);
 
@@ -51,10 +62,11 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   };
 
   const connectWebSocket = () => {
-    if (!token) return;
+    if (!token || role !== "administrador") return; 
 
     const url = `wss://app-831822364980.southamerica-east1.run.app/ws?token=${token}`;
     setIsConnecting(true);
+    shouldReconnect.current = true;
     ws.current = new WebSocket(url);
 
     ws.current.onopen = () => {
@@ -66,12 +78,11 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     ws.current.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log("Mensaje RAW:", event.data); // Debug
+        console.log("Mensaje RAW:", event.data);
         
-        setMessages(prev => [...prev, message]);
-        
+        setMessages((prev) => [...prev, message]);
+
         if (message.tipo === "NUEVO_PEDIDO" && message.pedido) {
-          console.log("Nuevo pedido estructurado:", message.pedido);
           setNewOrder(message.pedido);
         }
       } catch (error) {
@@ -83,7 +94,10 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       setIsConnected(false);
       setIsConnecting(false);
       console.log("WebSocket Cerrado 🔴");
-      setTimeout(() => connectWebSocket(), 5000);
+
+      if (shouldReconnect.current) {
+        setTimeout(() => connectWebSocket(), 5000);
+      }
     };
 
     ws.current.onerror = (error) => {
@@ -93,18 +107,31 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
   };
 
+  const disconnectWebSocket = () => {
+    shouldReconnect.current = false;
+    ws.current?.close();
+    ws.current = null;
+    setIsConnected(false);
+    setMessages([]);
+  };
+
   useEffect(() => {
-    connectWebSocket();
-    return () => ws.current?.close();
-  }, [token]);
+    if (role === "administrador") {
+      connectWebSocket();
+    } else {
+      disconnectWebSocket(); // 🔹 Cerrar WebSocket si no es administrador
+    }
+    return () => disconnectWebSocket();
+  }, [token, role]);
 
   return (
     <WebSocketContext.Provider value={{ 
       isConnected, 
       isConnecting, 
       sendMessage, 
-      messages,
-      newOrder 
+      messages, 
+      newOrder, 
+      disconnectWebSocket 
     }}>
       {children}
     </WebSocketContext.Provider>

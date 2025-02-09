@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useGlobalState } from '../Context/contextUser';
 import { useRouter } from 'next/navigation';
+import { useWebSocket } from "../Context/WebSocketContext";
+import axios from 'axios';
 
 type NavigationItem = {
   name: string;
@@ -17,11 +19,26 @@ export const Header: React.FC<{ navigation: NavigationItem[] }> = ({ navigation 
   const { usuario, setUsuario } = useGlobalState();
   const router = useRouter();
 
+  const { disconnectWebSocket } = useWebSocket();
+
+  
+
   const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+  
+    // 🔹 Cerrar WebSocket antes de limpiar el usuario
+    disconnectWebSocket();
+  
+    // 🔹 Asegurar que axios no siga usando el token viejo
+    delete axios.defaults.headers.common["Authorization"];
+  
     setUsuario(null);
-    router.push('/login');
+    router.push("/login");
+
+    setTimeout(()=>{
+      window.location.reload();
+    },500); 
   };
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
@@ -44,13 +61,15 @@ export const Header: React.FC<{ navigation: NavigationItem[] }> = ({ navigation 
         className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8"
         aria-label="Global"
       >
-        {/* Logo and User Info */}
+        
         <div className="flex items-center gap-6">
           <Link
-            href="/"
+            href={usuario?.rol === "administrador" ? "/listaVendedores" : "/dashvendedor"}
             className="flex items-center hover:opacity-80 transition-opacity"
           >
-            <div className="relative overflow-hidden rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div 
+            
+            className="relative overflow-hidden rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300">
               <Image
                 className="h-16 w-16 transform hover:scale-105 transition-transform duration-300"
                 src="/KHlogo.png"

@@ -31,14 +31,7 @@ export const vendedorSchema = z.object({
       message: "Rol no válido, seleccione un rol válido",
     }),
 
-  Precio: z
-    .string()
-    .nonempty({ message: "El monto es requerido" })
-    .regex(/^(?!0\d)\d+$/, { message: "El monto no puede comenzar con 0" }) // Evita ceros iniciales
-    .transform((val) => Number(val)) // Convierte a número
-    .pipe(
-      z.number().positive({ message: "El monto debe ser mayor a 0" }) // Valida que sea mayor a 0
-    ),
+
 });
 
 export const UserSchema = z.object({

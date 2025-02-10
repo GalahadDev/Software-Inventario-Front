@@ -167,7 +167,7 @@ const PedidosPage = () => {
       return (
         pedidoFecha >= fechaInicioObj &&
         pedidoFecha <= fechaTerminoObj &&
-        pedido.estado === "Entregado"
+        pedido.Estado === "Entregado"
       );
     })
     .reduce((sum, pedido) => sum + (pedido.Monto ?? 0), 0);

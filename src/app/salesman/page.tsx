@@ -84,7 +84,7 @@ function SalesMan() {
   
     if (!usuario || !usuario.usuario_id) {
       console.error("No se ha encontrado el usuario o no está autenticado.");
-      alert("No se ha encontrado el usuario o no está autenticado.");
+      
       return;
     }
   
@@ -96,10 +96,10 @@ function SalesMan() {
     try {
       const response = await sendSalesData(updatedSales);
       console.log("Pedido enviado con éxito:", response);
-      alert("Pedido enviado correctamente.");
+     
     } catch (error) {
       console.error("Error al enviar el pedido:", error);
-      alert("Ocurrió un error al enviar el pedido.");
+    
     }
   };
 

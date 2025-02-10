@@ -44,10 +44,11 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
       const updatedUser = await editUser(user.ID, formData);
       onSave(updatedUser); // Notificar al componente padre
       onClose(); // Cerrar el modal
-      console.log('Usuario actualizado:', updatedUser);
+      
+      
     } catch (error) {
       console.error('Error al actualizar usuario:', error);
-      alert('Error al actualizar el usuario');
+     
     }
   };
 

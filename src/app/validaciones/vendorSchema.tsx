@@ -8,7 +8,8 @@ export const vendedorSchema = z.object({
     .string()
     .min(3, { message: "El nombre debe tener al menos 3 caracteres" })
     .max(50, { message: "El nombre no puede exceder los 50 caracteres" })
-    .nonempty({ message: "El nombre es requerido" }),
+    .regex(/^[a-zA-Z\s]+$/, { message: "El nombre solo puede contener letras y espacios" }),
+
 
   Email: z
     .string()

@@ -40,7 +40,7 @@ const PedidosPage = () => {
   };
 
   useEffect(() => {
-    console.log("Nuevo pedido recibido:", newOrder);
+   
     if (newOrder) {
       addPedido(newOrder);
     }

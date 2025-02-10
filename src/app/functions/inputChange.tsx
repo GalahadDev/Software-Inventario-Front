@@ -15,5 +15,5 @@ export const handleInputChange = <T extends object>(
     
     
   });
-  console.log(value);
+
 };

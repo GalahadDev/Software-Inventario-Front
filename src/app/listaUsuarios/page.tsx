@@ -52,7 +52,7 @@ function UserList() {
   const openModal = (user: User) => {
     setSelectedUser(user);
     setIsModalOpen(true);
-    console.log('Usuario seleccionado:', user);
+    
   };
 
   // Cerrar modal

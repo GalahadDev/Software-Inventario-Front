@@ -7,7 +7,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setTimeout(() => {
       redirect("/login");
-    }, 4000); 
+    }, 2000); 
 
     return () => clearTimeout(timer);
   }, []);

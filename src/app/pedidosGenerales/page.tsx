@@ -38,7 +38,7 @@ const PedidosPage = () => {
 };
 
   useEffect(() => {
-    console.log("Nuevo pedido recibido:", newOrder);
+    
     if (newOrder) {
       addPedido(newOrder);
     }
@@ -57,14 +57,28 @@ const PedidosPage = () => {
   ];
 
   const calcularTotalMonto = () => {
+    // Validar si las fechas de inicio y término han sido seleccionadas
+    if (!startDate || !endDate) {
+      setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
+      return;
+    }
+  
+    // Si ambas fechas están seleccionadas, realizar el cálculo
     const total = filteredPedidos
-      .filter((pedido) => pedido.Estado === "Entregado")
+      .filter((pedido) => {
+        const pedidoFecha = new Date(pedido.FechaCreacion); 
+        const fechaInicioObj = new Date(startDate);
+        const fechaTerminoObj = new Date(endDate);
+  
+        // Filtrar solo los pedidos dentro del rango de fechas
+        return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
+      })
       .reduce((sum, pedido) => sum + (pedido.Monto ?? 0), 0);
-    
+  
     setTotalMonto(total);
     setIsModalOpen(true);
+    setErrorMessage(""); // Limpiar cualquier mensaje de error
   };
-
   const filteredPedidos = useMemo(() => {
     if (!localPedidos) return [];
   

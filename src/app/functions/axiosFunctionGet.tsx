@@ -16,7 +16,7 @@ export function useFetchData<T>(url: string) {
 
     const checkToken = setInterval(() => {
       const storedToken = localStorage.getItem("authToken");
-      console.log("Intentando obtener token:", storedToken);
+     
 
       if (storedToken) {
         clearInterval(checkToken); // Detener la verificación cuando obtiene el token
@@ -37,14 +37,14 @@ export function useFetchData<T>(url: string) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        console.log("Haciendo petición con token:", token);
+        
 
         const response = await api.get<T>(url, {
           signal: abortController.current!.signal,
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
 
-        console.log("Respuesta recibida:", response.data);
+      
         setData(response.data);
         setError(null);
       } catch (err) {

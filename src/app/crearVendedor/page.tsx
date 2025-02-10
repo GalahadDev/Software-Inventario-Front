@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Header } from "../ReusableComponents/Header";
 import { crearUsuario } from "../functions/functionPost";
 import { SuccessModal } from '../ReusableComponents/Exito'; 
+
 const CrearVendedor = () => {
   const [formData, setFormData] = useState({
     Nombre: "",
@@ -13,49 +14,49 @@ const CrearVendedor = () => {
     Rol: "",
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({}); // Estado para los errores
-  const [isOpen, setIsOpen] = useState(false); // Estado para controlar el modal
-  const [modalMessage, setModalMessage] = useState(""); // Mensaje para el modal
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [isOpen, setIsOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    // Bloquear números en tiempo real en el campo Nombre
+    if (name === "Nombre" && /[^a-zA-Z\s]/.test(value)) return;
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validar los datos con `safeParse` para capturar errores sin lanzar excepciones
+    const result = vendedorSchema.safeParse(formData);
+
+    if (!result.success) {
+      // Formatear errores para mostrarlos en la interfaz
+      const validationErrors: Record<string, string[]> = {};
+      result.error.errors.forEach(error => {
+        validationErrors[error.path[0]] = error.message ? [error.message] : [];
+      });
+      setErrors(validationErrors);
+      return;
+    }
+
     try {
-      // Validar el formulario con Zod
-      vendedorSchema.parse(formData);
-
       // Intentar crear el usuario
-      const result = await crearUsuario(formData);
+      const apiResponse = await crearUsuario(formData);
 
-      if (result.success) {
-        // Si la creación es exitosa, abrir el modal con un mensaje de éxito
+      if (apiResponse.success) {
         setModalMessage("Vendedor creado exitosamente!");
-        setIsOpen(true);
       } else {
-        // Si hay un error, abrir el modal con un mensaje de error
-        setModalMessage(result.error || "Error al crear el vendedor");
-        setIsOpen(true);
+        setModalMessage(apiResponse.error || "Error al crear el vendedor");
       }
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        // Manejar errores de validación
-        const validationErrors: Record<string, string> = {};
-        err.errors.forEach(error => {
-          validationErrors[error.path[0]] = error.message;
-        });
-        setErrors(validationErrors);
-      } else {
-        // Manejar otros errores
-        setModalMessage("Error inesperado al crear el vendedor");
-        setIsOpen(true);
-      }
+
+      setIsOpen(true);
+    } catch (error) {
+      setModalMessage("Error inesperado al crear el vendedor");
+      setIsOpen(true);
     }
   };
 
@@ -78,6 +79,7 @@ const CrearVendedor = () => {
         <h2 className="text-2xl font-bold mb-6 text-center text-black">Planilla de Registro</h2>
         
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Input Nombre */}
           <div>
             <label htmlFor="nombre" className="block text-sm font-medium text-black">Nombre</label>
             <input
@@ -90,9 +92,10 @@ const CrearVendedor = () => {
               required
               className="w-full pl-3 pr-4 py-2.5 rounded-lg border border-gray-300 focus:border-blue-500 text-black"
             />
-            {errors.Nombre && <p className="text-red-500 text-xs">{errors.Nombre}</p>}
+            {errors.Nombre && <p className="text-red-500 text-xs">{errors.Nombre[0]}</p>}
           </div>
-          
+
+          {/* Input Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-black">Correo Electrónico</label>
             <input
@@ -105,24 +108,26 @@ const CrearVendedor = () => {
               required
               className="w-full pl-3 pr-4 py-2.5 rounded-lg border border-gray-300 focus:border-blue-500 text-black"
             />
-            {errors.Email && <p className="text-red-500 text-xs">{errors.Email}</p>}
+            {errors.Email && <p className="text-red-500 text-xs">{errors.Email[0]}</p>}
           </div>
           
+          {/* Input Contraseña */}
           <div>
-            <label htmlFor="Contraseña" className="block text-sm font-medium text-black">Contraseña</label>
+            <label htmlFor="Contrasena" className="block text-sm font-medium text-black">Contraseña</label>
             <input
               type="password"
               placeholder="Contraseña"
-              id="Contraseña"
+              id="Contrasena"
               name="Contrasena"
               value={formData.Contrasena}
               onChange={handleChange}
               required
               className="w-full pl-3 pr-4 py-2.5 rounded-lg border border-gray-300 focus:border-blue-500 text-black"
             />
-            {errors.Contrasena && <p className="text-red-500 text-xs">{errors.Contrasena}</p>}
+            {errors.Contrasena && <p className="text-red-500 text-xs">{errors.Contrasena[0]}</p>}
           </div>
           
+          {/* Select Rol */}
           <div>
             <label htmlFor="rol" className="block text-sm font-medium text-black">Rol</label>
             <select
@@ -138,9 +143,10 @@ const CrearVendedor = () => {
               <option value="vendedor">Vendedor</option>
               <option value="gerente">Gestor</option>
             </select>
-            {errors.Rol && <p className="text-red-500 text-xs">{errors.Rol}</p>}
+            {errors.Rol && <p className="text-red-500 text-xs">{errors.Rol[0]}</p>}
           </div>
 
+          {/* Botón de enviar */}
           <div>
             <button
               type="submit"
@@ -157,7 +163,6 @@ const CrearVendedor = () => {
         onClose={() => setIsOpen(false)}
         message={modalMessage}
       />
-      
     </div>
   );
 };

@@ -12,7 +12,11 @@ export const sendSalesData = async (sales: SaleForm) => {
 
     formData.append("nombre", sales.nombre.toString());
     formData.append("descripcion", sales.descripcion.toString());
-    formData.append("precio", sales.precio.toString());
+    if (sales.precio !== null && sales.precio !== undefined) {
+      formData.append("precio", sales.precio.toString());
+    } else {
+      throw new Error("El campo 'precio' es obligatorio.");
+    }
     formData.append("observaciones", sales.observaciones.toString());
     formData.append("forma_pago", sales.forma_pago.toString());
 
@@ -40,7 +44,7 @@ export const sendSalesData = async (sales: SaleForm) => {
     });
 
     console.log("Respuesta del servidor:", response.data);
-    alert("Datos enviados correctamente");
+  
     return response.data;
   } catch (error: any) {
     console.error("Error al enviar los datos:", error);

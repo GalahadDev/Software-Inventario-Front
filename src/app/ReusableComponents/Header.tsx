@@ -46,7 +46,7 @@ export const Header: React.FC<{ navigation: NavigationItem[] }> = ({ navigation 
     if (storedUserData) {
       try {
         const user = JSON.parse(storedUserData);
-        console.log('Usuario recuperado:', user);
+       
         setUsuario(user);  // Establecer el usuario en el estado global
       } catch (error) {
         console.error('Error al parsear los datos de usuario:', error);
@@ -133,62 +133,41 @@ export const Header: React.FC<{ navigation: NavigationItem[] }> = ({ navigation 
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm"
-            onClick={() => setMobileMenuOpen(false)}
-          />
+  <div className="fixed inset-0 z-50 bg-white flex flex-col justify-center items-center h-screen w-screen px-6 py-6">
+    {/* Botón de cierre en la esquina superior derecha */}
+    <button
+      type="button"
+      className="absolute top-6 right-6 rounded-full p-2 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+      onClick={() => setMobileMenuOpen(false)}
+    >
+      <X className="h-8 w-8" />
+    </button>
 
-          {/* Mobile menu panel */}
-          <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10 transform transition-transform duration-300">
-            <div className="flex items-center justify-between">
-              <Link href="/" className="flex items-center gap-2">
-                <Image
-                  className="h-8 w-8 rounded-full"
-                  src="/KHlogo.png"
-                  alt="Your Company Logo"
-                  width={32}
-                  height={32}
-                />
-                <span className="font-semibold text-gray-900">Menu</span>
-              </Link>
-              <button
-                type="button"
-                className="rounded-full p-2.5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
+    {/* Opciones de navegación en columna */}
+    <div className="flex flex-col space-y-6 w-full max-w-md">
+      {navigation.map((item) => (
+        <Link
+          key={item.name}
+          href={item.href}
+          className="block text-center w-full text-2xl font-semibold text-gray-900 bg-gray-100 py-4 rounded-lg hover:bg-blue-600 hover:text-white transition-all duration-200"
+          onClick={() => setMobileMenuOpen(false)} // Cierra el menú al hacer clic
+        >
+          {item.name}
+        </Link>
+      ))}
 
-            <div className="mt-6 flow-root">
-              <div className="-my-6 divide-y divide-gray-500/10">
-                <div className="space-y-1 py-6">
-                  {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="-mx-3 flex items-center gap-2 rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50 transition-all duration-200"
-                    >
-                      <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                      {item.name}
-                    </Link>
-                  ))}
-                </div>
-                {usuario && (
-                  <button
-                    onClick={logout}
-                    className="w-full mt-4 bg-red-500 text-white py-2 rounded-lg font-medium hover:bg-red-600 focus:ring-2 focus:ring-red-500/20 transition-all duration-200"
-                  >
-                    Cerrar Sesión
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Botón de Cerrar Sesión si el usuario está autenticado */}
+      {usuario && (
+        <button
+          onClick={logout}
+          className="w-full text-center bg-red-500 text-white py-4 rounded-lg text-2xl font-semibold hover:bg-red-600 focus:ring-2 focus:ring-red-500/20 transition-all duration-200"
+        >
+          Cerrar Sesión
+        </button>
       )}
+    </div>
+  </div>
+)}
     </header>
   );
 };

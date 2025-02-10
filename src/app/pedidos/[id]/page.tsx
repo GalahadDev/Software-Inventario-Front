@@ -150,28 +150,33 @@ const PedidosPage = () => {
   }
 
   const handleCalculateTotal = () => {
-    // Validar si las fechas de inicio y término han sido seleccionadas
-    if (!startDate || !endDate) {
-      setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
-      return;
-    }
-  
-    // Si ambas fechas están seleccionadas, realizar el cálculo
-    const total = filteredPedidos
-      .filter((pedido) => {
-        const pedidoFecha = new Date(pedido.FechaCreacion); 
-        const fechaInicioObj = new Date(startDate);
-        const fechaTerminoObj = new Date(endDate);
-  
-        // Filtrar solo los pedidos dentro del rango de fechas
-        return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
-      })
-      .reduce((sum, pedido) => sum + (pedido.Monto ?? 0), 0);
-  
-    setTotalMonto(total);
-    setIsModalOpen(true);
-    setErrorMessage(""); // Limpiar cualquier mensaje de error
-  };
+  // Validar si las fechas de inicio y término han sido seleccionadas
+  if (!startDate || !endDate) {
+    setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
+    return;
+  }
+
+  // Si ambas fechas están seleccionadas, realizar el cálculo
+  const total = filteredPedidos
+    .filter((pedido) => {
+      const pedidoFecha = new Date(pedido.FechaCreacion); 
+      const fechaInicioObj = new Date(startDate);
+      const fechaTerminoObj = new Date(endDate);
+
+      // Filtrar solo los pedidos dentro del rango de fechas y que tengan estado "Entregado"
+      return (
+        pedidoFecha >= fechaInicioObj &&
+        pedidoFecha <= fechaTerminoObj &&
+        pedido.estado === "Entregado"
+      );
+    })
+    .reduce((sum, pedido) => sum + (pedido.Monto ?? 0), 0);
+
+  setTotalMonto(total);
+  setIsModalOpen(true);
+  setErrorMessage(""); // Limpiar cualquier mensaje de error
+};
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

@@ -1,45 +1,48 @@
-'use client';
+"use client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-import Link from 'next/link';
-import { useState } from 'react';
-import { useFetchData } from '../functions/axiosFunctionGet';
-import { Header } from '../ReusableComponents/Header';
-import { Vendedor } from '../types';
-import { Users } from 'lucide-react';
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useFetchData } from "../functions/axiosFunctionGet";
+import { Header } from "../ReusableComponents/Header";
+import { Vendedor, Pedido } from "../types";
+import { Users } from "lucide-react";
+import { usePedidosContext } from "../Context/PedidosContext";
 
 const navigation = [
-  { name: 'Ver Vendedores', href: '/listaVendedores' },
-  { name: 'Ver Pedidos', href: '/pedidosGenerales' },
-  { name: 'Crear Vendedor', href: '/crearVendedor' },
-  { name: 'Crear Pedido', href: '/vendedorAdm' },
-  { name: 'Usuarios', href: '/listaUsuarios' },
+  { name: "Ver Vendedores", href: "/listaVendedores" },
+  { name: "Ver Pedidos", href: "/pedidosGenerales" },
+  { name: "Crear Vendedor", href: "/crearVendedor" },
+  { name: "Crear Pedido", href: "/vendedorAdm" },
+  { name: "Usuarios", href: "/listaUsuarios" },
+  { name: "Galeria", href: "/galeria" }
 ];
 
 export default function OrdersPage() {
-  // Ahora NO es async y NO recibe params
-  const { data, error, loading } = useFetchData<Vendedor[]>('/users/vendedores');
-  const [searchTerm, setSearchTerm] = useState('');
+  const { data: vendedores, error, loading } = useFetchData<Vendedor[]>("/users/vendedores");
+  const { data: pedidosData } = useFetchData<Pedido[]>("/pedidos"); // Nueva llamada a "/pedidos"
+  const [searchTerm, setSearchTerm] = useState("");
+  const { setPedidosList } = usePedidosContext();
 
-  // Manejo de error en caso de que 'error' sea un objeto con 'message'
-  const errorMessage =
-    typeof error === 'object' && error !== null && 'message' in error
-      ? (error as { message: string }).message
-      : 'Ocurrió un error desconocido.';
-
-  // Función para armar la ruta de cada vendedor (ir a /pedidos/[vendedorId])
-  const handleRedirect = (vendedorId: string) => {
-    if (vendedorId) {
-      return `/pedidos/${vendedorId}`;
-    } else {
-      console.error('ID del vendedor es inválido');
-      return '#';
+  // Actualizar el estado global de pedidos cuando lleguen los datos
+  useEffect(() => {
+    if (pedidosData) {
+      console.log("📥 Actualizando pedidos desde OrdersPage:", pedidosData);
+      setPedidosList(pedidosData);
     }
+  }, [pedidosData, setPedidosList]);
+
+  const errorMessage =
+    typeof error === "object" && error !== null && "message" in error
+      ? (error as { message: string }).message
+      : "Ocurrió un error desconocido.";
+
+  const handleRedirect = (vendedorId: string) => {
+    return vendedorId ? `/pedidos/${vendedorId}` : "#";
   };
 
-  // Filtrar la lista de vendedores basado en el término de búsqueda
-  const filteredVendedores = data?.filter((vendedor) =>
+  const filteredVendedores = vendedores?.filter((vendedor) =>
     vendedor.Nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -56,7 +59,6 @@ export default function OrdersPage() {
             <div className="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
           </div>
 
-          {/* Campo de búsqueda */}
           <div className="mb-8">
             <input
               type="text"
@@ -67,14 +69,12 @@ export default function OrdersPage() {
             />
           </div>
 
-          {/* Loader */}
           {loading && (
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
             </div>
           )}
 
-          {/* Error */}
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 mb-8 rounded-r">
               <div className="flex">
@@ -100,7 +100,6 @@ export default function OrdersPage() {
             </div>
           )}
 
-          {/* Lista de vendedores */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[70vh] overflow-y-auto pr-3">
             {filteredVendedores?.map((vendedor) => (
               <div

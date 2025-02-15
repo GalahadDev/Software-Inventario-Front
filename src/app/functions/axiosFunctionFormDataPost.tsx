@@ -20,7 +20,9 @@ export const sendSalesData = async (sales: SaleForm) => {
     formData.append("observaciones", sales.observaciones.toString());
     formData.append("forma_pago", sales.forma_pago.toString());
 
-    // Asegúrate de que usuario tiene un usuario_id
+    formData.append("nro_tlf", sales.nro_tlf.toString());
+
+    //
     if (sales.usuario_id) {
       formData.append("usuario_id", sales.usuario_id.toString());
     } else {
@@ -43,7 +45,7 @@ export const sendSalesData = async (sales: SaleForm) => {
       },
     });
 
-    console.log("Respuesta del servidor:", response.data);
+   console.log("Respuesta del servidor:", response.data);
   
     return response.data;
   } catch (error: any) {

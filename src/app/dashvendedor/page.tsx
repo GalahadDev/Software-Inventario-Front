@@ -8,8 +8,8 @@ import { Header } from "../ReusableComponents/Header"
 function DashVendedor() {
 
 const navigation = [  
-  { name: "Hacer Pedido", href: "/dashvendedor"},
-  { name: "Ver Pedidos", href: "/pedidosGenerales" },
+  { name: "Ver Pedidos", href: "/vistapedidosvendedor" },
+  
 ]
 
   return (

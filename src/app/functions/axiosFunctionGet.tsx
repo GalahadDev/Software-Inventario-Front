@@ -24,7 +24,7 @@ export function useFetchData<T>(url: string) {
       } else if (token !== undefined) {
         clearInterval(checkToken); // Detener si el usuario se deslogueó
       }
-    }, 1000); // Revisa cada segundo
+    }, 3000); // Revisa cada segundo
 
     return () => clearInterval(checkToken);
   }, [token]); // Se ejecuta cuando `token` cambia

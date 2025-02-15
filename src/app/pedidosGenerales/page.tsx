@@ -11,6 +11,7 @@ import { usePedidosContext } from "../Context/PedidosContext";
 import { useWebSocket } from "../Context/WebSocketContext"; 
 import { SearchBar } from "../ReusableComponents/SearchBar";
 import { usePedidoActions } from "../functions/useUpdateData";
+import { useFetchData } from "app/functions/axiosFunctionGet"; // Importar la función useFetchData
 
 const PedidosPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -25,20 +26,30 @@ const PedidosPage = () => {
   const { newOrder } = useWebSocket();
   const { markAsAttended } = usePedidoActions();
   const [localPedidos, setLocalPedidos] = useState<Pedido[]>([]);
-  
   const [errorMessage, setErrorMessage] = useState<string | null>("");
- 
+
   
+  const { data: fetchedPedidos, error: fetchError, loading: fetchLoading, refetch } = useFetchData<Pedido[]>("/pedidos");
+
+  // Actualizar el estado de los pedidos cuando los datos se carguen
+  useEffect(() => {
+    if (fetchedPedidos) {
+      setPedidosList(fetchedPedidos);
+      setLocalPedidos(fetchedPedidos);
+    }
+  }, [fetchedPedidos, setPedidosList]);
+
+  // Resto del código del componente...
+
   const bgChange = () => {
     if (pedidos.length > 0 && pedidos[0].Atendido === false) {
         return 'bg-yellow-200 animate-pulse';
     } else {  
         return 'bg-white';
     }
-};
+  };
 
   useEffect(() => {
-    
     if (newOrder) {
       addPedido(newOrder);
     }
@@ -57,28 +68,26 @@ const PedidosPage = () => {
   ];
 
   const calcularTotalMonto = () => {
-    // Validar si las fechas de inicio y término han sido seleccionadas
     if (!startDate || !endDate) {
       setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
       return;
     }
   
-    // Si ambas fechas están seleccionadas, realizar el cálculo
     const total = filteredPedidos
       .filter((pedido) => {
         const pedidoFecha = new Date(pedido.FechaCreacion); 
         const fechaInicioObj = new Date(startDate);
         const fechaTerminoObj = new Date(endDate);
   
-        // Filtrar solo los pedidos dentro del rango de fechas
         return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
       })
       .reduce((sum, pedido) => sum + (pedido.Monto ?? 0), 0);
   
     setTotalMonto(total);
     setIsModalOpen(true);
-    setErrorMessage(""); // Limpiar cualquier mensaje de error
+    setErrorMessage("");
   };
+
   const filteredPedidos = useMemo(() => {
     if (!localPedidos) return [];
   
@@ -107,15 +116,11 @@ const PedidosPage = () => {
     try {
       await markAsAttended(pedido.ID);
   
-      // Crear una copia del array con el pedido actualizado
       const updatedPedidos = pedidos.map(p => 
         p.ID === pedido.ID ? { ...p, Atendido: true } : p
       );
   
-      // Actualizar el contexto global con la nueva lista
       setPedidosList(updatedPedidos);
-  
-      // Actualizar el estado local también
       setLocalPedidos(updatedPedidos);
   
       setSelectedPedido({ ...pedido, Atendido: true });
@@ -124,7 +129,6 @@ const PedidosPage = () => {
       console.error("Error al actualizar:", error);
     }
   };
-  
 
   const handleSendToWhatsApp = (pedido: Pedido) => {
     const mensaje = `Pedido: ${pedido.Nombre}\nDescripción: ${pedido.Descripcion}\nObservaciones: ${pedido.Observaciones}\nImagen: ${pedido.Imagen}`;
@@ -151,15 +155,15 @@ const PedidosPage = () => {
     return statusColors[estado ?? ""] || "bg-gray-100 text-gray-800";
   };
 
-  if (loading) return (
+  if (fetchLoading) return (
     <div className="flex justify-center items-center min-h-screen">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
     </div>
   );
 
-  if (error) return (
+  if (fetchError) return (
     <div className="text-red-500 text-center p-4">
-      Error al cargar los pedidos: {error}
+      Error al cargar los pedidos: {fetchError}
     </div>
   );
 
@@ -171,33 +175,26 @@ const PedidosPage = () => {
     );
   }
 
- const handleCalculateTotal = () => {
-  // Validar si las fechas de inicio y término han sido seleccionadas
-  if (!startDate || !endDate) {
-    setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
-    return;
-  }
-
-  // Si ambas fechas están seleccionadas, realizar el cálculo
-  const total = filteredPedidos
-    .filter((pedido) => {
-      const pedidoFecha = new Date(pedido.FechaCreacion); 
-      const fechaInicioObj = new Date(startDate);
-      const fechaTerminoObj = new Date(endDate);
-
-      // Filtrar solo los pedidos dentro del rango de fechas y que tengan estado "Entregado"
-      return (
-        pedidoFecha >= fechaInicioObj &&
-        pedidoFecha <= fechaTerminoObj &&
-        pedido.Estado === "Entregado"
-      );
-    })
-    .reduce((sum, pedido) => sum + (pedido.Monto ?? 0), 0);
-
-  setTotalMonto(total);
-  setIsModalOpen(true);
-  setErrorMessage(""); // Limpiar cualquier mensaje de error
-};
+  const handleCalculateTotal = () => {
+    if (!startDate || !endDate) {
+      setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
+      return;
+    }
+  
+    const total = filteredPedidos
+      .filter((pedido) => {
+        const pedidoFecha = new Date(pedido.FechaCreacion); 
+        const fechaInicioObj = new Date(startDate);
+        const fechaTerminoObj = new Date(endDate);
+  
+        return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
+      })
+      .reduce((sum, pedido) => sum + (pedido.Monto ?? 0), 0);
+  
+    setTotalMonto(total);
+    setIsModalOpen(true);
+    setErrorMessage("");
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -301,6 +298,7 @@ const PedidosPage = () => {
                         <span className="text-gray-600">{pedido.Fletero || "Sin Asignar"}</span>
                       </div>
                       <span className="text-sm text-gray-500">Comisión: ${pedido.Monto || "0"}</span>
+                      <span className="text-sm text-gray-600">Pagado: {pedido.Pagado}</span>
                     </div>
 
                     <div className="flex items-center">

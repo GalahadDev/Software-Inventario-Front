@@ -13,6 +13,8 @@ export interface Pedido {
     FechaCreacion: Date
     Atendido: boolean
     UsuarioID: string
+    nro_tlf: string,
+    Pagado: string
   }
 
   
@@ -54,6 +56,8 @@ export type SaleForm = {
   direccion: string;
   imagen: File | null; // Cambiado para aceptar un archivo
   usuario_id: string | null;
+  nro_tlf: string,
+  pagado: string;
 };
 export type StatusColor = {
   [key in 'pendiente' | 'en proceso' | 'completado' | 'cancelado']: string;

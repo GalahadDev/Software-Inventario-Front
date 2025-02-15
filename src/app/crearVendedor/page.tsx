@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { vendedorSchema } from '../validaciones/vendorSchema'; 
-import { z } from 'zod';  
+import { vendedorSchema } from '../validaciones/vendorSchema';  
 import { Header } from "../ReusableComponents/Header";
 import { crearUsuario } from "../functions/functionPost";
 import { SuccessModal } from '../ReusableComponents/Exito'; 

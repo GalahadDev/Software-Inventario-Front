@@ -13,10 +13,10 @@ export default function ClientLayout({
 }>) {
   return (
     <GlobalStateProvider> {/* Proveedor PRINCIPAL (debe estar primero) */}
-      <WebSocketProvider> {/* Ahora WebSocketProvider accederá al contexto GlobalState */}
-        <PedidosProvider> 
-          {children}
-          <ToastContainer 
+    <PedidosProvider> {/* Ahora PedidosProvider envuelve a WebSocketProvider */}
+      <WebSocketProvider> {/* WebSocketProvider ahora tiene acceso a PedidosContext */}
+        {children}
+        <ToastContainer 
           position="bottom-right"
           autoClose={3000}
           newestOnTop
@@ -26,9 +26,9 @@ export default function ClientLayout({
           draggable
           pauseOnHover
         />
-          <Footer />
-        </PedidosProvider>
+        <Footer />
       </WebSocketProvider>
-    </GlobalStateProvider>
+    </PedidosProvider>
+  </GlobalStateProvider>
   );
 }

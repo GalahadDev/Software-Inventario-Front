@@ -12,6 +12,7 @@ import { usePedidosContext } from "app/Context/PedidosContext";
 import { useWebSocket } from "app/Context/WebSocketContext";
 import { SearchBar } from "app/ReusableComponents/SearchBar";
 import { usePedidoActions } from "app/functions/useUpdateData";
+import { useFetchData } from "app/functions/axiosFunctionGet"; // Importa tu hook personalizado
 
 const PedidosPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -30,30 +31,36 @@ const PedidosPage = () => {
 
   const params = useParams<{ id: string }>();
   const vendedorId = params?.id;
- 
-  const bgChange = () => {
-    if (pedidos.length > 0 && pedidos[0].Atendido === false) {
-      return 'bg-yellow-200 animate-pulse';
-    } else {  
-      return 'bg-white';
-    }
-  };
 
+  // Usar el hook useFetchData para cargar los pedidos
+  const { data: fetchedPedidos, error: fetchError, loading: fetchLoading, refetch } = useFetchData<Pedido[]>("/pedidos");
+
+  // Actualizar el contexto global con los pedidos cargados
   useEffect(() => {
-   
+    if (fetchedPedidos && !fetchLoading && !fetchError) {
+      setPedidosList(fetchedPedidos); // Actualiza el contexto global
+    }
+  }, [fetchedPedidos, fetchLoading, fetchError, setPedidosList]);
+
+  // Sincronizar localPedidos con pedidos del contexto
+  useEffect(() => {
+    if (pedidos && pedidos.length > 0) {
+      setLocalPedidos(pedidos);
+    } else {
+      setLocalPedidos([]); // Asegurarse de que localPedidos esté vacío si no hay pedidos
+    }
+  }, [pedidos]);
+
+  // Agregar nuevo pedido desde WebSocket
+  useEffect(() => {
     if (newOrder) {
       addPedido(newOrder);
     }
   }, [newOrder, addPedido]);
 
-  useEffect(() => {
-    if (pedidos) setLocalPedidos(pedidos);
-  }, [pedidos]);
-
   // Filtrar pedidos por vendedorId
   const filteredPedidosByVendedor = useMemo(() => {
     if (!localPedidos || !vendedorId) return [];
-
     return localPedidos.filter(pedido => pedido.UsuarioID === vendedorId);
   }, [localPedidos, vendedorId]);
 
@@ -82,21 +89,15 @@ const PedidosPage = () => {
     });
   }, [filteredPedidosByVendedor, startDate, endDate, searchTerm]);
 
+  // Manejar clic en la tarjeta
   const handleCardClick = async (pedido: Pedido) => {
     try {
       await markAsAttended(pedido.ID);
-  
-      // Crear una copia del array con el pedido actualizado
       const updatedPedidos = pedidos.map(p => 
         p.ID === pedido.ID ? { ...p, Atendido: true } : p
       );
-  
-      // Actualizar el contexto global con la nueva lista
       setPedidosList(updatedPedidos);
-  
-      // Actualizar el estado local también
       setLocalPedidos(updatedPedidos);
-  
       setSelectedPedido({ ...pedido, Atendido: true });
       setShowModal(true);
     } catch (error) {
@@ -104,6 +105,7 @@ const PedidosPage = () => {
     }
   };
 
+  // Función para enviar a WhatsApp
   const handleSendToWhatsApp = (pedido: Pedido) => {
     const mensaje = `Pedido: ${pedido.Nombre}\nDescripción: ${pedido.Descripcion}\nObservaciones: ${pedido.Observaciones}\nImagen: ${pedido.Imagen}`;
     const mensajeCodificado = encodeURIComponent(mensaje);
@@ -111,6 +113,7 @@ const PedidosPage = () => {
     window.open(`https://api.whatsapp.com/send?text=${mensajeCodificado}&link=${grupoWhatsApp}`, "_blank");
   };
 
+  // Función para actualizar el monto
   const updateMonto = async (id: number, monto: number, fletero: string, estado: string) => {
     try {
       await updateData(`/pedidos/${id}`, { monto, fletero, estado, atendido: true });
@@ -120,6 +123,7 @@ const PedidosPage = () => {
     }
   };
 
+  // Función para obtener el color del estado
   const getStatusColor = (estado: string | undefined): string => {
     const statusColors: Record<string, string> = {
       Pendiente: "bg-yellow-400 text-white",
@@ -129,54 +133,52 @@ const PedidosPage = () => {
     return statusColors[estado ?? ""] || "bg-gray-100 text-gray-800";
   };
 
-  if (loading) return (
-    <div className="flex justify-center items-center min-h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-    </div>
-  );
+  // Función para calcular el total de montos
+  const handleCalculateTotal = () => {
+    if (!startDate || !endDate) {
+      setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
+      return;
+    }
 
-  if (error) return (
-    <div className="text-red-500 text-center p-4">
-      Error al cargar los pedidos: {error}
-    </div>
-  );
+    const total = filteredPedidos
+      .filter((pedido) => {
+        const pedidoFecha = new Date(pedido.FechaCreacion); 
+        const fechaInicioObj = new Date(startDate);
+        const fechaTerminoObj = new Date(endDate);
+        return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
+      })
+      .reduce((sum, pedido) => sum + (pedido.Monto ?? 0), 0);
 
-  if (!localPedidos || localPedidos.length === 0) {
+    setTotalMonto(total);
+    setIsModalOpen(true);
+    setErrorMessage("");
+  };
+
+  // Mostrar mensaje de carga o error
+  if (fetchLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="text-red-500 text-center p-4">
+        Error al cargar los pedidos: {fetchError}
+      </div>
+    );
+  }
+
+  // Mostrar mensaje si no hay pedidos después de cargar
+  if (!fetchLoading && (!localPedidos || localPedidos.length === 0)) {
     return (
       <div className="text-gray-500 text-center p-4">
         No se encontraron pedidos.
       </div>
     );
   }
-
-  const handleCalculateTotal = () => {
-  // Validar si las fechas de inicio y término han sido seleccionadas
-  if (!startDate || !endDate) {
-    setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
-    return;
-  }
-
-  // Si ambas fechas están seleccionadas, realizar el cálculo
-  const total = filteredPedidos
-    .filter((pedido) => {
-      const pedidoFecha = new Date(pedido.FechaCreacion); 
-      const fechaInicioObj = new Date(startDate);
-      const fechaTerminoObj = new Date(endDate);
-
-      // Filtrar solo los pedidos dentro del rango de fechas y que tengan estado "Entregado"
-      return (
-        pedidoFecha >= fechaInicioObj &&
-        pedidoFecha <= fechaTerminoObj &&
-        pedido.Estado === "Entregado"
-      );
-    })
-    .reduce((sum, pedido) => sum + (pedido.Monto ?? 0), 0);
-
-  setTotalMonto(total);
-  setIsModalOpen(true);
-  setErrorMessage(""); // Limpiar cualquier mensaje de error
-};
-
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -203,13 +205,14 @@ const PedidosPage = () => {
           <div>
             <div className="mt-6 mb-6">
               <button
-                onClick={() => {
-                  handleCalculateTotal();
-                }}
+                onClick={handleCalculateTotal}
                 className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
               >
                 Calcular Total de Montos
               </button>
+              {errorMessage && (
+                <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
+              )}
             </div>
 
             <SearchBar onSearch={setSearchTerm} placeholder="Buscar..." />
@@ -252,7 +255,9 @@ const PedidosPage = () => {
 
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-gray-800">{pedido.Nombre}</h2>
+                    <h2 className="text-xl font-semibold text-gray-800">
+                      {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
+                    </h2>
                     <span className="flex items-center text-green-600 font-semibold">
                       <DollarSign className="w-5 h-5 mr-1" />
                       {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
@@ -288,6 +293,7 @@ const PedidosPage = () => {
                         <span className="text-gray-600">{pedido.Fletero || "Sin Asignar"}</span>
                       </div>
                       <span className="text-sm text-gray-500">Comisión: ${pedido.Monto || "0"}</span>
+                      <span className="text-sm text-gray-600">Pagado: {pedido.Pagado}</span>
                     </div>
 
                     <div className="flex items-center">

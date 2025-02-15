@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { useGlobalState } from "./contextUser";
 import { toast } from "react-toastify";
+import { usePedidosContext } from "./PedidosContext";
 
 interface WebSocketContextType {
   isConnected: boolean;
@@ -20,6 +21,7 @@ interface WebSocketProviderProps {
 
 export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const { usuario } = useGlobalState();
+  const { updatePedido } = usePedidosContext();
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
@@ -34,12 +36,12 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     if (newOrder) {
       // Crear el sonido de la alarma
       const alarmSound = new Audio("https://wduloqcugbdlwmladawq.supabase.co/storage/v1/object/public/imagenes-pedidos/src/lineage_2_quest.mp3");
-  
+
       // Reproducir el sonido de la alarma
       alarmSound.play().catch((error) => {
         console.error("Error al reproducir el sonido de la alarma:", error);
       });
-  
+
       // Mostrar la notificación Toast
       toast.info("¡Nuevo pedido recibido!", {
         position: "bottom-right",
@@ -49,9 +51,9 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         pauseOnHover: true,
         draggable: true,
       });
-  
+
       // Asegúrate de limpiar el estado después de mostrar el toast
-      setNewOrder(null); 
+      setNewOrder(null);
     }
   }, [newOrder]);
 
@@ -62,7 +64,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   };
 
   const connectWebSocket = () => {
-    if (!token || role !== "administrador") return; 
+    if (!token || role !== "administrador") return;
 
     const url = `wss://app-831822364980.southamerica-east1.run.app/ws?token=${token}`;
     setIsConnecting(true);
@@ -79,11 +81,14 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       try {
         const message = JSON.parse(event.data);
         console.log("Mensaje RAW:", event.data);
-        
+
         setMessages((prev) => [...prev, message]);
 
         if (message.tipo === "NUEVO_PEDIDO" && message.pedido) {
           setNewOrder(message.pedido);
+        } else if (message.tipo === "PEDIDO_ACTUALIZADO" && message.pedido) {
+          // Actualizar el pedido en el estado global
+          updatePedido(message.pedido);
         }
       } catch (error) {
         console.error("Error al parsear mensaje:", error);
@@ -119,19 +124,19 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     if (role === "administrador") {
       connectWebSocket();
     } else {
-      disconnectWebSocket(); // 🔹 Cerrar WebSocket si no es administrador
+      disconnectWebSocket();
     }
     return () => disconnectWebSocket();
   }, [token, role]);
 
   return (
-    <WebSocketContext.Provider value={{ 
-      isConnected, 
-      isConnecting, 
-      sendMessage, 
-      messages, 
-      newOrder, 
-      disconnectWebSocket 
+    <WebSocketContext.Provider value={{
+      isConnected,
+      isConnecting,
+      sendMessage,
+      messages,
+      newOrder,
+      disconnectWebSocket,
     }}>
       {children}
     </WebSocketContext.Provider>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Pedido } from "../types";
 import { ModalProps } from "../types"
+import { XIcon, Loader2Icon } from 'lucide-react';
 
 
 export const Modal: React.FC<ModalProps> = ({ pedido, onClose, onSave, loading }) => {
@@ -15,65 +16,107 @@ export const Modal: React.FC<ModalProps> = ({ pedido, onClose, onSave, loading }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
-      <div className="bg-white text-black p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-xl font-bold mb-4">Editar Pedido</h2>
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 p-4">
+      <div className="bg-white text-black rounded-xl shadow-lg w-full max-w-md transform transition-all">
+        <div className="p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold">Editar Pedido</h2>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <XIcon className="w-5 h-5" />
+            </button>
+          </div>
 
-        <div>
-          <img
-          className="rounded-lg"
-          src={pedido.Imagen || "https://dummyimage.com/150x150/cccccc/ffffff.png&text=No+Image"}/>
-        </div>
+          <div className="space-y-4">
+            <div className="h-48 w-full overflow-hidden rounded-lg">
+              <img
+                className="w-full h-full object-cover"
+                src={pedido.Imagen || "https://dummyimage.com/600x400/cccccc/ffffff.png&text=No+Image"}
+                alt="Imagen del pedido"
+              />
+            </div>
 
-        <div className="mb-4">
-          <span className="text-sm text-black font-extrabold">Cliente: {pedido.Nombre}</span> <br/>
-          <span className="text-sm text-black font-extrabold">Descipcion: {pedido.Descripcion}</span><br/>
-          <span className="text-sm text-black font-extrabold">Observaciones: {pedido.Observaciones}</span><br/>
-          <span className="text-sm text-black font-extrabold">Nombre: {pedido.Nombre}</span><br/>
-          <span className="text-sm text-black font-extrabold">Precio: {pedido.Precio}</span>
-        </div>
+            <div className="grid gap-2">
+              <div className="p-3 bg-gray-50 rounded-lg text-sm space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Cliente</span>
+                  <span className="font-medium">{pedido.Nombre}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Descripción</span>
+                  <span className="font-medium">{pedido.Descripcion}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Observaciones</span>
+                  <span className="font-medium">{pedido.Observaciones}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Precio</span>
+                  <span className="font-medium">${pedido.Precio}</span>
+                </div>
+              </div>
 
-        <label className="block text-sm mb-2">Monto</label>
-        <input
-          type="number"
-          value={monto ?? ""}  // Si monto es null, mostrar como una cadena vacía
-          onChange={(e) => setMonto(e.target.value ? Number(e.target.value) : null)}  // Manejo de null si el campo está vacío
-          className="border-blue-1000 w-full px-4 py-2 border rounded-lg"
-        />
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Monto</label>
+                  <input
+                    type="number"
+                    value={monto ?? ""}
+                    onChange={(e) => setMonto(e.target.value ? Number(e.target.value) : null)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  />
+                </div>
 
-        <label className="block text-sm mb-2">Fletero</label>
-        <input
-          type="text"
-          value={fletero}
-          onChange={(e) => setFletero(e.target.value)}
-          className="border-blue-1000 w-full px-4 py-2 border rounded-lg"
-        />
+                <div>
+                  <label className="block text-sm font-medium mb-1">Fletero</label>
+                  <input
+                    type="text"
+                    value={fletero}
+                    onChange={(e) => setFletero(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  />
+                </div>
 
-<label className="block text-sm mb-2"></label>
-<select
-  value={estado}
-  onChange={(e) => setEstado(e.target.value)}
-  className="border-blue-1000 w-full px-4 py-2 border rounded-lg"
->
-  <option value="Pendiente">Pendiente</option>
-  <option value="Entregado">Entregado</option>
-  <option value="Cancelado">Cancelado</option>
-</select>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Estado</label>
+                  <select
+                    value={estado}
+                    onChange={(e) => setEstado(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  >
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Entregado">Entregado</option>
+                    <option value="Cancelado">Cancelado</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <div className="mt-4 flex justify-end space-x-2">
-          <button
-            onClick={onClose}
-            className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
-          >
-            {loading ? "Guardando..." : "Guardar"}
-          </button>
+          <div className="flex justify-end space-x-2 pt-4 border-t">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={loading}
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <Loader2Icon className="w-4 h-4 animate-spin" />
+                  <span>Guardando...</span>
+                </div>
+              ) : (
+                "Guardar"
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

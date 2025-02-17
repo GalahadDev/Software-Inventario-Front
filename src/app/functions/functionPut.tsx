@@ -11,7 +11,8 @@ export const useUpdateData = () => {
       monto?: number | undefined;
       fletero?: string | undefined;
       estado?: string | undefined;
-      atendido: boolean 
+      Atendido: boolean ;
+      pagado?: string
     }
   ) => {
     setLoading(true);
@@ -29,7 +30,9 @@ export const useUpdateData = () => {
       if (data.estado) {
         formData.append("estado", data.estado);
       }
-      formData.append("atendido", String(data.atendido));
+      formData.append("atendido", String(data.Atendido));
+
+      formData.append("pagado", data.pagado || "No Pagado"); 
 
       const response = await api.put(endpoint, formData, {
         headers: { "Content-Type": "multipart/form-data" },

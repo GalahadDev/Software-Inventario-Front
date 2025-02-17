@@ -21,7 +21,7 @@ interface WebSocketProviderProps {
 
 export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const { usuario } = useGlobalState();
-  const { updatePedido } = usePedidosContext();
+  const { addPedido, updatePedido } = usePedidosContext();
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
@@ -34,15 +34,11 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
   useEffect(() => {
     if (newOrder) {
-      // Crear el sonido de la alarma
       const alarmSound = new Audio("https://wduloqcugbdlwmladawq.supabase.co/storage/v1/object/public/imagenes-pedidos/src/lineage_2_quest.mp3");
-
-      // Reproducir el sonido de la alarma
       alarmSound.play().catch((error) => {
         console.error("Error al reproducir el sonido de la alarma:", error);
       });
 
-      // Mostrar la notificación Toast
       toast.info("¡Nuevo pedido recibido!", {
         position: "bottom-right",
         autoClose: 3000,
@@ -52,7 +48,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         draggable: true,
       });
 
-      // Asegúrate de limpiar el estado después de mostrar el toast
       setNewOrder(null);
     }
   }, [newOrder]);
@@ -66,7 +61,9 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const connectWebSocket = () => {
     if (!token || role !== "administrador") return;
 
-    const url = `wss://app-831822364980.southamerica-east1.run.app/ws?token=${token}`;
+    const baseUrl = process.env.NEXT_PUBLIC_WS_URL;
+    const url = `${baseUrl}?token=${token}`;
+
     setIsConnecting(true);
     shouldReconnect.current = true;
     ws.current = new WebSocket(url);
@@ -80,15 +77,15 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     ws.current.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log("Mensaje RAW:", event.data);
+        console.log("Mensaje recibido:", message);
 
         setMessages((prev) => [...prev, message]);
 
         if (message.tipo === "NUEVO_PEDIDO" && message.pedido) {
           setNewOrder(message.pedido);
+          addPedido(message.pedido); // Agregar el pedido al estado global
         } else if (message.tipo === "PEDIDO_ACTUALIZADO" && message.pedido) {
-          // Actualizar el pedido en el estado global
-          updatePedido(message.pedido);
+          updatePedido(message.pedido); // Actualizar el pedido en el estado global
         }
       } catch (error) {
         console.error("Error al parsear mensaje:", error);

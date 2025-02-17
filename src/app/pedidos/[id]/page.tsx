@@ -12,7 +12,6 @@ import { usePedidosContext } from "app/Context/PedidosContext";
 import { useWebSocket } from "app/Context/WebSocketContext";
 import { SearchBar } from "app/ReusableComponents/SearchBar";
 import { usePedidoActions } from "app/functions/useUpdateData";
-import { useFetchData } from "app/functions/axiosFunctionGet"; // Importa tu hook personalizado
 
 const PedidosPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -27,29 +26,9 @@ const PedidosPage = () => {
   const { newOrder } = useWebSocket();
   const { markAsAttended } = usePedidoActions();
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [localPedidos, setLocalPedidos] = useState<Pedido[]>([]);
 
   const params = useParams<{ id: string }>();
   const vendedorId = params?.id;
-
-  // Usar el hook useFetchData para cargar los pedidos
-  const { data: fetchedPedidos, error: fetchError, loading: fetchLoading, refetch } = useFetchData<Pedido[]>("/pedidos");
-
-  // Actualizar el contexto global con los pedidos cargados
-  useEffect(() => {
-    if (fetchedPedidos && !fetchLoading && !fetchError) {
-      setPedidosList(fetchedPedidos); // Actualiza el contexto global
-    }
-  }, [fetchedPedidos, fetchLoading, fetchError, setPedidosList]);
-
-  // Sincronizar localPedidos con pedidos del contexto
-  useEffect(() => {
-    if (pedidos && pedidos.length > 0) {
-      setLocalPedidos(pedidos);
-    } else {
-      setLocalPedidos([]); // Asegurarse de que localPedidos esté vacío si no hay pedidos
-    }
-  }, [pedidos]);
 
   // Agregar nuevo pedido desde WebSocket
   useEffect(() => {
@@ -60,9 +39,10 @@ const PedidosPage = () => {
 
   // Filtrar pedidos por vendedorId
   const filteredPedidosByVendedor = useMemo(() => {
-    if (!localPedidos || !vendedorId) return [];
-    return localPedidos.filter(pedido => pedido.UsuarioID === vendedorId);
-  }, [localPedidos, vendedorId]);
+    if (!pedidos || !vendedorId) return [];
+    return pedidos.filter(pedido => pedido.UsuarioID === vendedorId);
+    console.log(pedidos)
+  }, [pedidos, vendedorId]);
 
   // Filtrar pedidos según fechas y búsqueda
   const filteredPedidos = useMemo(() => {
@@ -97,7 +77,6 @@ const PedidosPage = () => {
         p.ID === pedido.ID ? { ...p, Atendido: true } : p
       );
       setPedidosList(updatedPedidos);
-      setLocalPedidos(updatedPedidos);
       setSelectedPedido({ ...pedido, Atendido: true });
       setShowModal(true);
     } catch (error) {
@@ -155,7 +134,7 @@ const PedidosPage = () => {
   };
 
   // Mostrar mensaje de carga o error
-  if (fetchLoading) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
@@ -163,16 +142,16 @@ const PedidosPage = () => {
     );
   }
 
-  if (fetchError) {
+  if (error) {
     return (
       <div className="text-red-500 text-center p-4">
-        Error al cargar los pedidos: {fetchError}
+        Error al cargar los pedidos: {error}
       </div>
     );
   }
 
   // Mostrar mensaje si no hay pedidos después de cargar
-  if (!fetchLoading && (!localPedidos || localPedidos.length === 0)) {
+  if (!loading && (!pedidos || pedidos.length === 0)) {
     return (
       <div className="text-gray-500 text-center p-4">
         No se encontraron pedidos.

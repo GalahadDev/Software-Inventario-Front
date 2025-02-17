@@ -13,7 +13,7 @@ import { usePedidosContext } from "../Context/PedidosContext";
 const navigation = [
   { name: "Ver Vendedores", href: "/listaVendedores" },
   { name: "Ver Pedidos", href: "/pedidosGenerales" },
-  { name: "Crear Vendedor", href: "/crearVendedor" },
+  { name: "Crear Usuario", href: "/crearVendedor" },
   { name: "Crear Pedido", href: "/vendedorAdm" },
   { name: "Usuarios", href: "/listaUsuarios" },
   { name: "Galeria", href: "/galeria" }
@@ -21,17 +21,8 @@ const navigation = [
 
 export default function OrdersPage() {
   const { data: vendedores, error, loading } = useFetchData<Vendedor[]>("/users/vendedores");
-  const { data: pedidosData } = useFetchData<Pedido[]>("/pedidos"); // Nueva llamada a "/pedidos"
   const [searchTerm, setSearchTerm] = useState("");
-  const { setPedidosList } = usePedidosContext();
-
-  // Actualizar el estado global de pedidos cuando lleguen los datos
-  useEffect(() => {
-    if (pedidosData) {
-      console.log("📥 Actualizando pedidos desde OrdersPage:", pedidosData);
-      setPedidosList(pedidosData);
-    }
-  }, [pedidosData, setPedidosList]);
+  // Obtén los pedidos del contexto
 
   const errorMessage =
     typeof error === "object" && error !== null && "message" in error

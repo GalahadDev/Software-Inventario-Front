@@ -6,7 +6,14 @@ import axios from 'axios';
 // Función para crear un usuario
 export const crearUsuario = async (usuarioData: Usuario): Promise<{ success: boolean; data?: any; error?: any }> => {
   try {
-    const response = await api.post('/users', usuarioData);
+    let dataToSend: Partial<Usuario> = usuarioData;
+
+    // Si el usuario es un vendedor, solo enviamos Nombre y Rol
+    if (usuarioData.Rol === "vendedor") {
+      dataToSend = { Nombre: usuarioData.Nombre, Rol: "vendedor" };
+    }
+
+    const response = await api.post('/users', dataToSend);
 
     // Si la creación es exitosa, devolvemos success: true y los datos del usuario
     return { success: true, data: response.data };

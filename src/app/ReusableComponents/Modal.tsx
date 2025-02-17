@@ -1,18 +1,24 @@
+"use client";
 import React, { useState } from "react";
-import { Pedido } from "../types";
-import { ModalProps } from "../types"
-import { XIcon, Loader2Icon } from 'lucide-react';
+import { Pedido } from "app/types";
+import { XIcon, Loader2Icon } from "lucide-react";
 
+interface ModalProps {
+  pedido: Pedido;
+  onClose: () => void;
+  onSave: (id: number, monto: number, fletero: string, estado: string, Atendido: boolean, pagado: string) => void;
+  loading: boolean;
+}
 
 export const Modal: React.FC<ModalProps> = ({ pedido, onClose, onSave, loading }) => {
-  // Aquí, el estado 'monto' puede ser un número o null
   const [monto, setMonto] = useState<number | null>(pedido.Monto || null);
   const [fletero, setFletero] = useState<string>(pedido.Fletero || "");
   const [estado, setEstado] = useState(pedido.Estado || "");
   const [Atendido, setAtendido] = useState(pedido.Atendido || false);
-  
+  const [pagado, setPagado] = useState(pedido.Pagado || "No Pagado");
+
   const handleSave = () => {
-    onSave(pedido.ID, monto ?? 0, fletero, estado, Atendido);
+    onSave(pedido.ID, monto ?? 0, fletero, estado, Atendido, pagado);
   };
 
   return (
@@ -89,6 +95,18 @@ export const Modal: React.FC<ModalProps> = ({ pedido, onClose, onSave, loading }
                     <option value="Pendiente">Pendiente</option>
                     <option value="Entregado">Entregado</option>
                     <option value="Cancelado">Cancelado</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Pagado</label>
+                  <select
+                    value={pagado}
+                    onChange={(e) => setPagado(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  >
+                    <option value="No Pagado">No Pagado</option>
+                    <option value="Pagado">Pagado</option>
                   </select>
                 </div>
               </div>

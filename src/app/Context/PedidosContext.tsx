@@ -1,9 +1,11 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo, useRef, useEffect } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback, useMemo } from "react";
 import { Pedido } from "../types";
 import { useWebSocket } from "./WebSocketContext";
 import { toast } from "react-toastify";
+import { useGlobalState } from "../Context/contextUser";
+import { useFetchData } from "../functions/axiosFunctionGet";
 
 interface PedidosContextType {
   pedidos: Pedido[];
@@ -30,35 +32,32 @@ interface PedidosProviderProps {
 
 export const PedidosProvider: React.FC<PedidosProviderProps> = ({ children }) => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [loading, setLoading] = useState(true); // Inicialmente en true para indicar carga
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { messages } = useWebSocket();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [userInteracted, setUserInteracted] = useState(false);
+  const { usuario } = useGlobalState();
 
-  // Inicializar sonido
+  // Usar useFetchData para cargar los pedidos
+  const { data, error: fetchError, loading: fetchLoading, refetch } = useFetchData<Pedido[]>("/pedidos");
+
+  // Actualizar el estado de los pedidos cuando los datos se carguen
   useEffect(() => {
-    audioRef.current = new Audio("https://wduloqcugbdlwmladawq.supabase.co/storage/v1/object/public/imagenes-pedidos/src/lineage_2_quest.mp3");
-    audioRef.current.preload = "auto";
+    if (data) {
+      setPedidosList(data);
+    }
+  }, [data]);
 
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
-
-  // Detectar interacción del usuario
+  // Manejar errores de la carga de pedidos
   useEffect(() => {
-    const handleUserInteraction = () => {
-      setUserInteracted(true);
-      document.removeEventListener("click", handleUserInteraction);
-    };
+    if (fetchError) {
+      setError(fetchError);
+    }
+  }, [fetchError]);
 
-    document.addEventListener("click", handleUserInteraction);
-    return () => document.removeEventListener("click", handleUserInteraction);
-  }, []);
+  // Actualizar el estado de carga
+  useEffect(() => {
+    setLoading(fetchLoading);
+  }, [fetchLoading]);
 
   // Manejar nuevos pedidos desde WebSockets
   useEffect(() => {
@@ -74,11 +73,6 @@ export const PedidosProvider: React.FC<PedidosProviderProps> = ({ children }) =>
           return prevPedidos;
         });
 
-        // Reproducir sonido si el usuario interactuó
-        if (userInteracted && audioRef.current) {
-          audioRef.current.play().catch((error) => console.error("Error al reproducir el sonido:", error));
-        }
-
         // Notificación
         toast.info(`Nuevo pedido recibido!`, {
           position: "bottom-right",
@@ -90,12 +84,12 @@ export const PedidosProvider: React.FC<PedidosProviderProps> = ({ children }) =>
         });
       }
     }
-  }, [messages, userInteracted]);
+  }, [messages]);
 
   // Función para actualizar el estado de pedidos
   const setPedidosList = useCallback((newPedidos: Pedido[]) => {
     setPedidos([...newPedidos]);
-    setLoading(false); // Indicar que la carga ha terminado
+    setLoading(false);
   }, []);
 
   // Función para agregar un nuevo pedido
@@ -105,7 +99,11 @@ export const PedidosProvider: React.FC<PedidosProviderProps> = ({ children }) =>
 
   // Función para actualizar un pedido existente
   const updatePedido = useCallback((pedidoActualizado: Pedido) => {
-    setPedidos((prevPedidos) => prevPedidos.map((pedido) => (pedido.ID === pedidoActualizado.ID ? pedidoActualizado : pedido)));
+    setPedidos((prevPedidos) =>
+      prevPedidos.map((pedido) =>
+        pedido.ID === pedidoActualizado.ID ? pedidoActualizado : pedido
+      )
+    );
   }, []);
 
   const contextValue = useMemo(

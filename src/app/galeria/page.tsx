@@ -34,7 +34,7 @@ export default function ImageGallery() {
 
     // Mapear las imágenes
     return imagenes.map((imagen, index) => ({
-      id: pedido.ID * 1000 + index, // Generar un ID único para cada imagen
+      id: pedido.ID ,
       url: imagen, // Usar el string directamente como URL
       title: `Imagen `, // Usar un título genérico
       category: 'Sin categoría', // Usar una categoría genérica
@@ -52,7 +52,7 @@ export default function ImageGallery() {
   const filteredImages = selectedCategory
     ? workImages.filter((img) => img.category === selectedCategory)
     : workImages;
-
+console.log(filteredImages)
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       {/* Header */}
@@ -64,7 +64,7 @@ export default function ImageGallery() {
        
       </div>
 
-      {/* Gallery Grid */}
+      
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredImages.map((image) => (
           <div

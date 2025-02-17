@@ -24,6 +24,7 @@ export interface Pedido {
  export type UserType = {
   email: string,
   contrasena: string;
+  nombre: string;
 }
 export type formData = {
     Nombre:string,
@@ -40,11 +41,12 @@ export type ModalProps = {
   onClose: () => void;
   onSave: (id: number, monto: number, fletero: string, estado: string, Atendido: boolean) => void;
   loading: boolean;
+  pagado: string;
 };
 export type Usuario = {
   Nombre: string;
-  Email: string;
-  Contrasena: string;
+  Email?: string;
+  Contrasena?: string;
   Rol: string;
 };
 export type SaleForm = {

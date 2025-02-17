@@ -10,7 +10,7 @@ export function useFetchData<T>(url: string) {
   const [token, setToken] = useState<string | null | undefined>(undefined);
   const abortController = useRef<AbortController | null>(null);
 
-  // Obtener el token de localStorage y dejar de buscarlo si no existe
+  
   useEffect(() => {
     if (typeof window === "undefined") return;
 

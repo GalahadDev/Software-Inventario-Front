@@ -2,20 +2,13 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { X, ExternalLink, Tag, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { usePedidosContext } from '../Context/PedidosContext';
 import { Header } from '../ReusableComponents/Header';
-interface WorkImage {
-  id: number;
-  url: string;
-  title: string;
-  category: string;
-  description: string;
-}
 
 export default function ImageGallery() {
   const { pedidos } = usePedidosContext();
-  const [selectedImage, setSelectedImage] = useState<WorkImage | null>(null);
+  const [selectedImage, setSelectedImage] = useState<any | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const navigation = [
@@ -27,40 +20,27 @@ export default function ImageGallery() {
     { name: "Galeria", href: "/galeria" }
   ];
 
-  if (!pedidos) {
+  if (!pedidos || pedidos.length === 0) {
     return <div>Cargando pedidos...</div>;
   }
 
-  // Generar workImages con URLs completas
-  const workImages: WorkImage[] = pedidos.flatMap((pedido) => {
-    if (!pedido || !pedido.Imagen) {
-      return [];
-    }
-
-    const imagenes: string[] = Array.isArray(pedido.Imagen) ? pedido.Imagen : [pedido.Imagen];
-
-    return imagenes.map((imagen, index) => {
-      const urlCompleta = imagen.startsWith("http") 
-        ? imagen 
-        : `https://wduloqcugbdlwmladawq.supabase.co/storage/v1/object/public/imagenes-pedidos/pedidos/${imagen}`;
-
-      return {
-        id: pedido.ID + index,
-        url: urlCompleta,
-        title: `Imagen ${pedido.ID}`,
-        category: 'Sin categoría',
-        description: pedido.Descripcion || 'Sin descripción',
-      };
-    });
+  // Extraer las URLs de las imágenes directamente del estado
+  const workImages = pedidos.flatMap((pedido) => {
+    const imagenes = Array.isArray(pedido.Imagen) ? pedido.Imagen : [pedido.Imagen];
+    return imagenes.map((imagen, index) => ({
+      id: pedido.ID + index,
+      url: imagen.startsWith("http")
+        ? imagen
+        : `https://wduloqcugbdlwmladawq.supabase.co/storage/v1/object/public/imagenes-pedidos/pedidos/${imagen}`,
+      title: `Imagen ${pedido.ID}`,
+      category: 'Sin categoría',
+      description: pedido.Descripcion || 'Sin descripción',
+    }));
   });
-
-  console.log("Imágenes procesadas:", workImages);
 
   if (workImages.length === 0) {
     return <div className="text-center text-gray-600 dark:text-gray-400">No hay imágenes para mostrar.</div>;
   }
-
-  const categories = Array.from(new Set(workImages.map((img) => img.category)));
 
   const filteredImages = selectedCategory
     ? workImages.filter((img) => img.category === selectedCategory)
@@ -95,12 +75,6 @@ export default function ImageGallery() {
               </div>
             </div>
             <div className="p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <Tag className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-600">
-                  {image.category}
-                </span>
-              </div>
               <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
                 {image.title}
               </h3>

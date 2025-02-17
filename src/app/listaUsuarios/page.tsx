@@ -24,7 +24,7 @@ function UserList() {
   const navigation = [
     { name: 'Ver Vendedores', href: '/listaVendedores' },
     { name: 'Ver Pedidos', href: '/pedidosGenerales' },
-    { name: 'Crear Vendedor', href: '/crearVendedor' },
+    { name: 'Crear Usuario', href: '/crearVendedor' },
     { name: "Crear Pedido", href: "/vendedorAdm" },
     {name: "Usuarios", href: "/listaUsuarios"}, 
   ];
@@ -37,6 +37,7 @@ function UserList() {
       try {
         const userList = await getUsers();
         setUsers(userList);
+        console.log(userList)
       } catch (error) {
         setError('Error al cargar usuarios');
         console.error('Error fetching users:', error);
@@ -96,6 +97,7 @@ function UserList() {
                 <div className="text-sm space-y-1">
                   {user.email && <p className="text-gray-600">📧 {user.email}</p>}
                   <p className="text-gray-500">🏷️ Rol: {user.Rol}</p>
+                  <p className="text-gray-500">🏷️ Usuario: {user.email}</p>
                 </div>
               </div>
               <Pencil className="h-4 w-4 text-blue-600" />

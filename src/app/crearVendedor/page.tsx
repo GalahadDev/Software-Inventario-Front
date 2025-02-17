@@ -7,7 +7,7 @@ import { vendedorSchema } from '../validaciones/vendedorSchema';
 import { administradorSchema } from '../validaciones/administradorSchema';
 
 const CrearVendedor = () => {
-  const [activeTab, setActiveTab] = useState("Administrativo");
+  const [activeTab, setActiveTab] = useState("Vendedor");
   const [formData, setFormData] = useState({
     Nombre: "",
     Email: "",

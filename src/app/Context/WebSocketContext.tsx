@@ -63,6 +63,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     const baseUrl = process.env.NEXT_PUBLIC_WS_URL;
     const url = `${baseUrl}?token=${token}`;
+    console.log("Conectando a WebSocket:", url);
 
     setIsConnecting(true);
     shouldReconnect.current = true;

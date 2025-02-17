@@ -11,7 +11,7 @@ export const useUpdateData = () => {
       monto?: number | undefined;
       fletero?: string | undefined;
       estado?: string | undefined;
-      Atendido: boolean ;
+      atendido?: boolean ;
       pagado?: string
     }
   ) => {
@@ -30,7 +30,7 @@ export const useUpdateData = () => {
       if (data.estado) {
         formData.append("estado", data.estado);
       }
-      formData.append("atendido", String(data.Atendido));
+      formData.append("atendido", String(data.atendido));
 
       formData.append("pagado", data.pagado || "No Pagado"); 
 

@@ -161,7 +161,7 @@ const CrearVendedor = () => {
             value={formData.Nombre}
             onChange={handleChange}
             required
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded text-black"
           />
         </div>
         <div>
@@ -175,7 +175,7 @@ const CrearVendedor = () => {
             value={formData.Email}
             onChange={handleChange}
             required
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded text-black"
           />
         </div>
         <div>
@@ -189,7 +189,7 @@ const CrearVendedor = () => {
             value={formData.Contrasena}
             onChange={handleChange}
             required
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded text-black"
           />
         </div>
         <div>
@@ -202,7 +202,7 @@ const CrearVendedor = () => {
             value={formData.Rol}
             onChange={handleChange}
             required
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded text-black"
           >
             <option value="">Selecciona un rol</option>
             <option value="administrador">administrador</option>
@@ -223,7 +223,7 @@ const CrearVendedor = () => {
             value={formData.Nombre}
             onChange={handleChange}
             required
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded text-black"
           />
         </div>
         <div>

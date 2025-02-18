@@ -4,7 +4,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true, 
   },
-  // ... otras configuraciones
-}
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "wduloqcugbdlwmladawq.supabase.co",
+      },
+    ],
+  },
+};
 
 export default nextConfig

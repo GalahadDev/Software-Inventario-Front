@@ -46,6 +46,24 @@ export default function ImageGallery() {
     ? workImages.filter((img) => img.category === selectedCategory)
     : workImages;
 
+    const handleDownload = async (imageUrl: string, imageName: string) => {
+      try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = imageName || "imagen";
+        document.body.appendChild(a);
+        a.click();
+        
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Error al descargar la imagen:", error);
+      }
+    };
+
   return (
     <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8 pt-40">
       <Header navigation={navigation} />
@@ -86,50 +104,10 @@ export default function ImageGallery() {
         ))}
       </div>
 
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      {selectedImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-auto relative">
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="absolute -top-2 -right-2 p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition"
-              aria-label="Close modal"
-            >
-              <X className="w-5 h-5 text-gray-600" />
-            </button>
-            <div className="p-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">{selectedImage.title}</h2>
-              <div className="relative w-full aspect-square mb-3">
-                <Image
-                  src={decodeURIComponent(selectedImage.url)}
-                  alt={selectedImage.title}
-                  fill
-                  className="object-cover rounded-lg"
-                />
-              </div>
-              <p className="text-sm text-gray-600 mb-4">{selectedImage.description}</p>
-              <div className="flex justify-between gap-3">
-                <button
-                  onClick={() => setSelectedImage(null)}
-                  className="px-3 py-1.5 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600 transition"
-                >
-                  Cerrar
-                </button>
-                <a
-                  href={decodeURIComponent(selectedImage.url)}
-                  download
-                  className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-md flex items-center gap-1.5 hover:bg-blue-600 transition"
-                >
-                  <Download className="w-4 h-4" /> Descargar Imagen
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+    
     </div>
 
-    </div>  
+    
   );
 }
 

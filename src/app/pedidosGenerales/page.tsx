@@ -54,11 +54,12 @@ const PedidosPage = () => {
   }, [pedidos]);
 
   const navigation = [
-    { name: 'Ver Vendedores', href: '/listaVendedores' },
-    { name: 'Ver Pedidos', href: '/pedidosGenerales' },
-    { name: 'Crear Vendedor', href: '/crearVendedor' },
+    { name: "Ver Vendedores", href: "/listaVendedores" },
+    { name: "Ver Pedidos", href: "/pedidosGenerales" },
+    { name: "Crear Usuario", href: "/crearVendedor" },
     { name: "Crear Pedido", href: "/vendedorAdm" },
     { name: "Usuarios", href: "/listaUsuarios" },
+    { name: "Galeria", href: "/galeria" }
   ];
 
   const calcularTotalMonto = () => {

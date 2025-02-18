@@ -171,9 +171,10 @@ const PedidosPage = () => {
         <Header navigation={[
           { name: 'Ver Vendedores', href: '/listaVendedores' },
           { name: 'Ver Pedidos', href: '/pedidosGenerales' },
-          { name: 'Crear Vendedor', href: '/crearVendedor' },
+          { name: 'Crear Usuario', href: '/crearVendedor' },
           { name: "Crear Pedido", href: "/vendedorAdm" },
-          { name: "Usuarios", href: "/listaUsuarios" }, 
+          { name: "Usuarios", href: "/listaUsuarios" },
+          { name: "Galeria" , href: "galeria"} 
         ]} />
       </header>
     

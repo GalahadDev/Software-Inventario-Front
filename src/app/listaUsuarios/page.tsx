@@ -25,11 +25,12 @@ function UserList() {
   const [showWarning, setShowWarning] = useState(false); // Estado para mostrar advertencia
 
   const navigation = [
-    { name: 'Ver Vendedores', href: '/listaVendedores' },
-    { name: 'Ver Pedidos', href: '/pedidosGenerales' },
-    { name: 'Crear Usuario', href: '/crearVendedor' },
+    { name: "Ver Vendedores", href: "/listaVendedores" },
+    { name: "Ver Pedidos", href: "/pedidosGenerales" },
+    { name: "Crear Usuario", href: "/crearVendedor" },
     { name: "Crear Pedido", href: "/vendedorAdm" },
-    { name: "Usuarios", href: "/listaUsuarios" }, 
+    { name: "Usuarios", href: "/listaUsuarios" },
+    { name: "Galeria", href: "/galeria" }
   ];
 
   useEffect(() => {

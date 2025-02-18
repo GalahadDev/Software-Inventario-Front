@@ -64,7 +64,7 @@ export default function ImageGallery() {
           >
             <div className="relative h-64 w-full">
               <Image
-                src={image.url}
+                src={decodeURIComponent(image.url)}
                 alt={image.title}
                 fill
                 className="object-cover"

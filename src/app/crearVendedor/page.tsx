@@ -123,77 +123,147 @@ const CrearVendedor = () => {
       <h1 className="font-extrabold text-3xl text-center mt-32 text-black">
         Registra un Nuevo Usuario
       </h1>
-
       <div className="max-w-md mx-auto mt-4 p-6 bg-white rounded-xl shadow-lg">
-        <div className="flex border-b mb-6">
-          <button
-            onClick={() => setActiveTab("Administrativo")}
-            className={`w-1/2 py-2 text-center ${activeTab === "Administrativo" ? "border-b-2 border-blue-500 font-bold" : "text-black"}`}
-          >
-            Administrativo
-          </button>
-          <button
-            onClick={() => setActiveTab("Vendedor")}
-            className={`w-1/2 py-2 text-center ${activeTab === "Vendedor" ? "border-b-2 border-blue-500 font-bold" : "text-black"}`}
-          >
-            Vendedor
-          </button>
+  <div className="flex border-b mb-6">
+    <button
+      onClick={() => setActiveTab("Administrativo")}
+      className={`w-1/2 py-2 text-center ${
+        activeTab === "Administrativo"
+          ? "border-b-2 border-blue-500 font-bold text-blue-500"
+          : "text-gray-500 hover:text-gray-700"
+      }`}
+    >
+      Administrativo
+    </button>
+    <button
+      onClick={() => setActiveTab("Vendedor")}
+      className={`w-1/2 py-2 text-center ${
+        activeTab === "Vendedor"
+          ? "border-b-2 border-blue-500 font-bold text-blue-500"
+          : "text-gray-500 hover:text-gray-700"
+      }`}
+    >
+      Vendedor
+    </button>
+  </div>
+
+  <form onSubmit={handleSubmit} className="space-y-6">
+    {activeTab === "Administrativo" ? (
+      <>
+        <div>
+          <label htmlFor="nombre" className="block text-sm font-medium text-black">
+            Nombre
+          </label>
+          <input
+            type="text"
+            id="nombre"
+            name="Nombre"
+            value={formData.Nombre}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border rounded"
+          />
         </div>
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-black">
+            Correo Electrónico
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="Email"
+            value={formData.Email}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border rounded"
+          />
+        </div>
+        <div>
+          <label htmlFor="Contrasena" className="block text-sm font-medium text-black">
+            Contraseña
+          </label>
+          <input
+            type="password"
+            id="Contrasena"
+            name="Contrasena"
+            value={formData.Contrasena}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border rounded"
+          />
+        </div>
+        <div>
+          <label htmlFor="rol" className="block text-sm font-medium text-black">
+            Rol
+          </label>
+          <select
+            id="rol"
+            name="Rol"
+            value={formData.Rol}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border rounded"
+          >
+            <option value="">Selecciona un rol</option>
+            <option value="administrador">administrador</option>
+            <option value="gestor">gestor</option>
+          </select>
+        </div>
+      </>
+    ) : (
+      <>
+        <div>
+          <label htmlFor="nombre" className="block text-sm font-medium text-black">
+            Nombre
+          </label>
+          <input
+            type="text"
+            id="Nombre"
+            name="Nombre"
+            value={formData.Nombre}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border rounded"
+          />
+        </div>
+        <div>
+          <label htmlFor="rol" className="block text-sm font-medium text-black">
+            Rol
+          </label>
+          <select
+            id="rol"
+            name="Rol"
+            value="vendedor"
+            disabled
+            className="w-full p-2 border text-black rounded bg-gray-200 cursor-not-allowed"
+          >
+            <option value="vendedor">vendedor</option>
+          </select>
+        </div>
+      </>
+    )}
+    <div>
+      <button
+        type="submit"
+        className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+      >
+        Registrar
+      </button>
+    </div>
+  </form>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {activeTab === "Administrativo" ? (
-            <>
-              <div>
-                <label htmlFor="nombre" className="block text-sm font-medium text-black">Nombre</label>
-                <input type="text" id="nombre" name="Nombre" value={formData.Nombre} onChange={handleChange} required className="w-full p-2 border rounded" />
-              </div>
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-black">Correo Electrónico</label>
-                <input type="email" id="email" name="Email" value={formData.Email} onChange={handleChange} required className="w-full p-2 border rounded" />
-              </div>
-              <div>
-                <label htmlFor="Contrasena" className="block text-sm font-medium text-black">Contraseña</label>
-                <input type="password" id="Contrasena" name="Contrasena" value={formData.Contrasena} onChange={handleChange} required className="w-full p-2 border rounded" />
-              </div>
-              <div>
-                <label htmlFor="rol" className="block text-sm font-medium text-black">Rol</label>
-                <select id="rol" name="Rol" value={formData.Rol} onChange={handleChange} required className="w-full p-2 border rounded">
-                  <option value="">Selecciona un rol</option>
-                  <option value="administrador">administrador</option>
-                  <option value="gestor">gestor</option>
-                </select>
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <label htmlFor="nombre" className="block text-sm font-medium text-black">Nombre</label>
-                <input type="text" id="Nombre" name="Nombre" value={formData.Nombre} onChange={handleChange} required className="w-full p-2 border rounded" />
-              </div>
-              <div>
-                <label htmlFor="rol" className="block text-sm font-medium text-black">Rol</label>
-                <select id="rol" name="Rol" value="vendedor" disabled className="w-full p-2 border text-black rounded bg-gray-200 cursor-not-allowed">
-                  <option value="vendedor">vendedor</option>
-                </select>
-              </div>
-            </>
-          )}
-          <div>
-            <button type="submit" className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-              Registrar
-            </button>
-          </div>
-        </form>
-
-        {/* Botón para enviar usuario a WhatsApp */}
-        {apiResponse?.success && (
-          <div className="mt-4">
-            <button onClick={handleSendToWhatsApp} className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700">
-              Enviar Usuario a WhatsApp
-            </button>
-          </div>
-        )}
-      </div>
+  {/* Botón para enviar usuario a WhatsApp */}
+  {apiResponse?.success && (
+    <div className="mt-4">
+      <button
+        onClick={handleSendToWhatsApp}
+        className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700"
+      >
+        Enviar Usuario a WhatsApp
+      </button>
+    </div>
+  )}
+</div>
 
       <SuccessModal isOpen={isOpen} onClose={() => setIsOpen(false)} message={modalMessage} />
     </div>

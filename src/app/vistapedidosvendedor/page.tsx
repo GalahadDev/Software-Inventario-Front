@@ -234,7 +234,7 @@ const VistaPedidosVendedor = () => {
                   <div className="flex items-center">
                    
                   </div>
-                  <span className="text-sm text-gray-600">Pagado: {pedido.Pagado}</span>
+                  <span className="text-sm text-gray-600">Estado: {pedido.Pagado}</span>
                 </div>
               </div>
             </div>

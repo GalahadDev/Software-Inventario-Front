@@ -14,7 +14,9 @@ export interface Pedido {
     Atendido: boolean
     UsuarioID: string
     nro_tlf: string,
-    Pagado: string
+    Pagado: string,
+    Nombre_Vendedor: string
+
   }
 
   

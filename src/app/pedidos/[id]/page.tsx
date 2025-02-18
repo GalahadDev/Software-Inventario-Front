@@ -12,6 +12,7 @@ import { usePedidosContext } from "app/Context/PedidosContext";
 import { useWebSocket } from "app/Context/WebSocketContext";
 import { SearchBar } from "app/ReusableComponents/SearchBar";
 import { usePedidoActions } from "app/functions/useUpdateData";
+import { PedidosPagados } from "app/ReusableComponents/PedidosPagados";
 
 const PedidosPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -27,56 +28,54 @@ const PedidosPage = () => {
   const { markAsAttended } = usePedidoActions();
   const [errorMessage, setErrorMessage] = useState<string>("");
 
+  // Estados para pedidos no pagados y pagados
+  const [localPedidos, setLocalPedidos] = useState<Pedido[]>([]);
+  const [pedidosNoPagados, setPedidosNoPagados] = useState<Pedido[]>([]);
+  const [pedidosPagados, setPedidosPagados] = useState<Pedido[]>([]);
+  const [showPagados, setShowPagados] = useState(false); // Estado para controlar la visibilidad
+
   const params = useParams<{ id: string }>();
   const vendedorId = params?.id;
 
-  // Agregar nuevo pedido desde WebSocket
+  // Separar pedidos en pagados y no pagados (solo para el vendedor seleccionado)
   useEffect(() => {
-    if (newOrder) {
-      addPedido(newOrder);
-    }
-  }, [newOrder, addPedido]);
+    if (pedidos && vendedorId) {
+      // Filtrar primero los pedidos del vendedor seleccionado
+      const pedidosDelVendedor = pedidos.filter(pedido => pedido.UsuarioID === vendedorId);
+      setLocalPedidos(pedidosDelVendedor);
 
-  // Filtrar pedidos por vendedorId
-  const filteredPedidosByVendedor = useMemo(() => {
-    if (!pedidos || !vendedorId) return [];
-    return pedidos.filter(pedido => pedido.UsuarioID === vendedorId);
-    console.log(pedidos)
+      // Separar en pagados y no pagados
+      const noPagados = pedidosDelVendedor.filter(pedido => pedido.Pagado === "No Pagado");
+      setPedidosNoPagados(noPagados);
+
+      const pagados = pedidosDelVendedor.filter(pedido => pedido.Pagado === "Pagado");
+      setPedidosPagados(pagados);
+
+      // Depuración: Verificar los pedidos filtrados
+      console.log("Pedidos del vendedor:", pedidosDelVendedor);
+      console.log("Pedidos no pagados:", noPagados);
+      console.log("Pedidos pagados:", pagados);
+    }
   }, [pedidos, vendedorId]);
 
-  // Filtrar pedidos según fechas y búsqueda
-  const filteredPedidos = useMemo(() => {
-    if (!filteredPedidosByVendedor) return [];
-
-    const sortedPedidos = [...filteredPedidosByVendedor].sort((a, b) => 
-      new Date(b.FechaCreacion).getTime() - new Date(a.FechaCreacion).getTime()
-    );
-
-    return sortedPedidos.filter((pedido) => {
-      const fechaCreacion = new Date(pedido.FechaCreacion);
-      if (isNaN(fechaCreacion.getTime())) return false;
-
-      const isInRange =
-        (!startDate || fechaCreacion >= startDate) &&
-        (!endDate || fechaCreacion <= endDate);
-
-      const matchesSearch = searchTerm
-        ? Object.values(pedido)
-            .some(value => value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()))
-        : true;
-
-      return isInRange && matchesSearch;
-    });
-  }, [filteredPedidosByVendedor, startDate, endDate, searchTerm]);
+  // Agregar nuevo pedido desde WebSocket
+  useEffect(() => {
+     if (newOrder) {
+       // Verificar si el pedido ya existe antes de agregarlo
+       if (!pedidos.some((pedido) => pedido.ID === newOrder.ID)) {
+         setPedidosList([...pedidos, newOrder]);
+       }
+     }
+   }, [newOrder, pedidos, setPedidosList]);
 
   // Manejar clic en la tarjeta
   const handleCardClick = async (pedido: Pedido) => {
     try {
       await markAsAttended(pedido.ID);
-      const updatedPedidos = pedidos.map(p => 
+      const updatedPedidos = localPedidos.map(p => 
         p.ID === pedido.ID ? { ...p, Atendido: true } : p
       );
-      setPedidosList(updatedPedidos);
+      setLocalPedidos(updatedPedidos);
       setSelectedPedido({ ...pedido, Atendido: true });
       setShowModal(true);
     } catch (error) {
@@ -93,9 +92,16 @@ const PedidosPage = () => {
   };
 
   // Función para actualizar el monto
-  const updateMonto = async (id: number, monto: number, fletero: string, estado: string) => {
+  const updateMonto = async (
+    id: number,
+    monto: number,
+    fletero: string,
+    estado: string,
+    Atendido: boolean,
+    pagado: string
+  ) => {
     try {
-      await updateData(`/pedidos/${id}`, { monto, fletero, estado, atendido: true });
+      await updateData(`/pedidos/${id}`, { monto, fletero, estado, atendido: Atendido, pagado });
       setShowModal(false);
     } catch (error) {
       console.error("Error al actualizar el monto:", error);
@@ -119,7 +125,7 @@ const PedidosPage = () => {
       return;
     }
 
-    const total = filteredPedidos
+    const total = pedidosNoPagados
       .filter((pedido) => {
         const pedidoFecha = new Date(pedido.FechaCreacion); 
         const fechaInicioObj = new Date(startDate);
@@ -151,7 +157,7 @@ const PedidosPage = () => {
   }
 
   // Mostrar mensaje si no hay pedidos después de cargar
-  if (!loading && (!pedidos || pedidos.length === 0)) {
+  if (!loading && (!localPedidos || localPedidos.length === 0)) {
     return (
       <div className="text-gray-500 text-center p-4">
         No se encontraron pedidos.
@@ -172,7 +178,9 @@ const PedidosPage = () => {
       </header>
     
       <main className="flex-grow mt-[80px] px-4 py-8 container mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">Pedidos</h1>
+        <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">
+          {showPagados ? "Pedidos Pagados" : "Pedidos No Pagados"}
+        </h1>
     
         <div className="mb-8">
           <SearchDate
@@ -182,16 +190,19 @@ const PedidosPage = () => {
             onEndDateChange={setEndDate}
           />
           <div>
-            <div className="mt-6 mb-6">
+            <div className="mt-6 mb-6 flex gap-4">
               <button
                 onClick={handleCalculateTotal}
                 className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
               >
                 Calcular Total de Montos
               </button>
-              {errorMessage && (
-                <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
-              )}
+              <button
+                onClick={() => setShowPagados(!showPagados)}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                {showPagados ? "Ver No Pagados" : "Ver Pagados"}
+              </button>
             </div>
 
             <SearchBar onSearch={setSearchTerm} placeholder="Buscar..." />
@@ -205,98 +216,222 @@ const PedidosPage = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto max-h-[80vh] pr-3">
-          {filteredPedidos.map((pedido) => {
-            const fecha = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES");
+        {/* Renderizar pedidos no pagados o pagados según el estado */}
+        {showPagados ? (
+          <PedidosPagados pedidosPagados={pedidosPagados} />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto max-h-[80vh] pr-3">
+            {pedidosNoPagados.map((pedido) => {
+              const fecha = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES");
 
-            return (
-              <div
-                key={`${pedido.ID}-${pedido.Nombre}`}
-                className={`rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer transform origin-center ${
-                  pedido.Atendido 
-                    ? 'bg-white' 
-                    : 'bg-yellow-200 animate-pulse-scale'
-                }`}
-                onClick={() => handleCardClick(pedido)}
-              >
-                <div className="relative">
-                  <img
-                    src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
-                    alt={`Pedido de ${pedido.Nombre}`}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div
-                    className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(pedido.Estado)}`}
-                  >
-                    {pedido.Estado || "Sin estado"}
+              // Depuración: Verificar cada pedido no pagado
+              console.log("Renderizando pedido no pagado:", pedido);
+
+              return (
+                <div
+                  key={`${pedido.ID}-${pedido.Nombre}`}
+                  className={`
+                    rounded-xl 
+                    shadow-lg 
+                    hover:shadow-xl 
+                    transition-all 
+                    duration-300 
+                    overflow-hidden 
+                    cursor-pointer 
+                    transform 
+                    origin-center 
+                    ${pedido.Atendido ? 'bg-white' : 'bg-yellow-200 animate-pulse-scale'}
+                  `}
+                  onClick={() => handleCardClick(pedido)}
+                >
+                  <div className="relative">
+                    <img
+                      src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
+                      alt={`Pedido de ${pedido.Nombre}`}
+                      className="
+                        w-full 
+                        h-48 
+                        object-cover
+                      "
+                    />
+                    <div
+                      className={`
+                        absolute 
+                        top-4 
+                        right-4 
+                        px-3 
+                        py-1 
+                        rounded-full 
+                        text-sm 
+                        font-medium 
+                        ${getStatusColor(pedido.Estado)}
+                      `}
+                    >
+                      {pedido.Estado || "Sin estado"}
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="
+                      flex 
+                      items-center 
+                      justify-between 
+                      mb-4
+                    ">
+                      <h2 className="
+                        text-xl 
+                        font-semibold 
+                        text-gray-800
+                      ">
+                        {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
+                      </h2>
+                      <span className="
+                        flex 
+                        items-center 
+                        text-green-600 
+                        font-semibold
+                      ">
+                        <DollarSign className="w-5 h-5 mr-1" />
+                        {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="
+                        flex 
+                        items-start
+                      ">
+                        <Package className="
+                          w-5 
+                          h-5 
+                          mr-3 
+                          text-gray-500 
+                          flex-shrink-0 
+                          mt-1
+                        " />
+                        <p className="text-gray-600">{pedido.Descripcion}</p>
+                      </div>
+
+                      <div className="
+                        flex 
+                        items-center
+                      ">
+                        <MapPin className="
+                          w-5 
+                          h-5 
+                          mr-3 
+                          text-gray-500
+                        " />
+                        <p className="text-gray-600">{pedido.Direccion}</p>
+                      </div>
+
+                      <div className="
+                        flex 
+                        items-center
+                      ">
+                        <CreditCard className="
+                          w-5 
+                          h-5 
+                          mr-3 
+                          text-gray-500
+                        " />
+                        <p className="text-gray-600">{pedido.Forma_Pago}</p>
+                      </div>
+
+                      {pedido.Observaciones && (
+                        <div className="
+                          flex 
+                          items-start
+                        ">
+                          <ClipboardList className="
+                            w-5 
+                            h-5 
+                            mr-3 
+                            text-gray-500 
+                            flex-shrink-0 
+                            mt-1
+                          " />
+                          <p className="text-gray-600">{pedido.Observaciones}</p>
+                        </div>
+                      )}
+
+                      <div className="
+                        flex 
+                        flex-col 
+                        space-y-2 
+                        pt-3 
+                        border-t 
+                        border-gray-100
+                      ">
+                        <div className="
+                          flex 
+                          items-center
+                        ">
+                          <Truck className="
+                            w-5 
+                            h-5 
+                            mr-2 
+                            text-gray-500
+                          " />
+                          <span className="text-gray-600">{pedido.Fletero || "Sin Asignar"}</span>
+                        </div>
+                        <div className="
+                          flex 
+                          items-center
+                        ">
+                          <span className="text-sm text-gray-500">Comisión: ${pedido.Monto || "0"}</span>
+                        </div>
+                        <div className="
+                          flex 
+                          items-center
+                        ">
+                          <span className="text-sm text-gray-600">Estado: {pedido.Pagado}</span>
+                        </div>
+                      </div>
+
+                      <div className="
+                        flex 
+                        items-center
+                      ">
+                        <MapPin className="
+                          w-5 
+                          h-5 
+                          mr-3 
+                          text-gray-500
+                        " />
+                        <p className="text-gray-600">{fecha}</p>
+                      </div>
+
+                      <div className="mt-4">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSendToWhatsApp(pedido);
+                          }}
+                          className="
+                            flex 
+                            items-center 
+                            justify-center 
+                            w-full 
+                            bg-green-500 
+                            text-white 
+                            py-2 
+                            px-4 
+                            rounded-lg 
+                            hover:bg-green-600 
+                            transition
+                          "
+                        >
+                          Enviar a WhatsApp
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
-                    </h2>
-                    <span className="flex items-center text-green-600 font-semibold">
-                      <DollarSign className="w-5 h-5 mr-1" />
-                      {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
-                    </span>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-start">
-                      <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                      <p className="text-gray-600">{pedido.Descripcion}</p>
-                    </div>
-
-                    <div className="flex items-center">
-                      <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                      <p className="text-gray-600">{pedido.Direccion}</p>
-                    </div>
-
-                    <div className="flex items-center">
-                      <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
-                      <p className="text-gray-600">{pedido.Forma_Pago}</p>
-                    </div>
-
-                    {pedido.Observaciones && (
-                      <div className="flex items-start">
-                        <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                        <p className="text-gray-600">{pedido.Observaciones}</p>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div className="flex items-center">
-                        <Truck className="w-5 h-5 mr-2 text-gray-500" />
-                        <span className="text-gray-600">{pedido.Fletero || "Sin Asignar"}</span>
-                      </div>
-                      <span className="text-sm text-gray-500">Comisión: ${pedido.Monto || "0"}</span>
-                      <span className="text-sm text-gray-600">Pagado: {pedido.Pagado}</span>
-                    </div>
-
-                    <div className="flex items-center">
-                      <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                      <p className="text-gray-600">{fecha}</p>
-                    </div>
-
-                    <div className="mt-4">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSendToWhatsApp(pedido);
-                        }}
-                        className="flex items-center justify-center w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition"
-                      >
-                        Enviar a WhatsApp
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
     
         {showModal && selectedPedido && (
           <Modal

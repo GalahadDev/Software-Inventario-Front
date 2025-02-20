@@ -16,7 +16,7 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
   const [formData, setFormData] = useState({
     Nombre: user?.Nombre || '',
     Contrasena: user?.Contrasena || '',
-    email: user?.email || '',
+    Email: user?.Email || '',
     Rol: user?.Rol || '',
   });
 
@@ -82,7 +82,7 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
               <input
                 type="email"
                 name="email"
-                value={formData.email}
+                value={formData.Email}
                 onChange={handleInputChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
               />

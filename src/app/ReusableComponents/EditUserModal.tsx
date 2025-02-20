@@ -14,10 +14,10 @@ interface EditUserModalProps {
 
 export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalProps) {
   const [formData, setFormData] = useState({
-    Nombre: user?.Nombre || '',
-    Contrasena: user?.Contrasena || '',
-    Email: user?.Email || '',
-    Rol: user?.Rol || '',
+    Nombre: user?.Nombre.
+    Contrasena: user?.Contrasena,
+    Email: user?.Email,
+    Rol: user?.Rol
   });
 
   // Manejar cambios en los inputs

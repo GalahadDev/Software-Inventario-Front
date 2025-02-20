@@ -4,8 +4,8 @@ import { handleInputChange } from "../functions/inputChange";
 import { sendSalesData } from "../functions/axiosFunctionFormDataPost";
 import { useGlobalState } from "../Context/contextUser";
 import { SaleForm } from "../types";
-import  { pedidoScheme }  from "../validaciones/pedidoScheme";
-import { SuccessModal } from '../ReusableComponents/Exito'; 
+import { pedidoScheme } from "../validaciones/pedidoScheme";
+import { SuccessModal } from '../ReusableComponents/Exito';
 
 function SalesMan() {
   const { usuario } = useGlobalState();
@@ -20,12 +20,16 @@ function SalesMan() {
     usuario_id: null,
     nro_tlf: "",
     pagado: "",
+    tela: "",
+    color: "",
+    subVendedor: "",
+     Comision_Sugerida:""
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-   const [isOpen, setIsOpen] = useState(false);
-    const [modalMessage, setModalMessage] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,17 +76,17 @@ function SalesMan() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     if (!usuario || !usuario.usuario_id) {
       console.error("No se ha encontrado el usuario o no está autenticado.");
       return;
     }
-  
+
     const updatedSales: SaleForm = {
       ...sales,
       usuario_id: usuario.usuario_id,
     };
-  
+
     try {
       // Validar los datos del formulario con el esquema pedidoScheme
       const result = pedidoScheme.safeParse(updatedSales);
@@ -95,7 +99,7 @@ function SalesMan() {
         setErrors(newErrors);
         return;
       }
-  
+
       // Si la validación es exitosa, enviar los datos
       const response = await sendSalesData(updatedSales);
       console.log("Pedido enviado con éxito:", response);
@@ -113,6 +117,10 @@ function SalesMan() {
           usuario_id: null,
           nro_tlf: "",
           pagado: "",
+          tela: "",
+          color: "",
+          subVendedor: "",
+          Comision_Sugerida:""
         })
       }
     } catch (error) {
@@ -148,15 +156,39 @@ function SalesMan() {
                   onChange={(e) => handleInputChange(e, sales, setSales)}
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
+
+
                 <input
                   type="text"
                   name="descripcion"
-                  placeholder="Descripción"
+                  placeholder="Producto"
                   value={sales.descripcion}
                   onChange={(e) => handleInputChange(e, sales, setSales)}
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
                 {errors.descripcion && <p className="text-red-500 text-xs mt-1">{errors.descripcion}</p>}
+
+                <input
+                  type="text"
+                  name="tela"
+                  placeholder="Tipo de Tela"
+                  value={sales.tela}
+                  onChange={(e) => handleInputChange(e, sales, setSales)}
+                  className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
+                />
+
+                <input
+                  type="text"
+                  name="color"
+                  placeholder="Color"
+                  value={sales.tela}
+                  onChange={(e) => handleInputChange(e, sales, setSales)}
+                  className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
+                />
+
+
+
+
                 <div>
                   <input
                     type="number"
@@ -194,6 +226,23 @@ function SalesMan() {
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
                 {errors.nro_tlf && <p className="text-red-500 text-xs mt-1">{errors.nro_tlf}</p>}
+                <input
+                  type="text"
+                  name="subVendedor"
+                  placeholder="Nombre del Vendedor Asociado"
+                  value={sales.tela}
+                  onChange={(e) => handleInputChange(e, sales, setSales)}
+                  className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
+                />
+                <input
+                  type="text"
+                  name="Comision_sugerida"
+                  placeholder="Comision Sugerida"
+                  value={sales.Comision_Sugerida}
+                  onChange={(e) => handleInputChange(e, sales, setSales)}
+                  className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
+                />
+
                 <div className="relative">
                   <input
                     type="file"
@@ -213,13 +262,15 @@ function SalesMan() {
                     className="w-full h-auto object-cover"
                   />
                 </div>
+
+
               )}
 
-               <SuccessModal
-                      isOpen={isOpen}
-                      onClose={() => setIsOpen(false)}
-                      message={modalMessage}
-                    />
+              <SuccessModal
+                isOpen={isOpen}
+                onClose={() => setIsOpen(false)}
+                message={modalMessage}
+              />
 
               <button
                 type="submit"

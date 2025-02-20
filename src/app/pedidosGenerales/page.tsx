@@ -133,9 +133,9 @@ const PedidosPage = () => {
   };
 
   const handleSendToWhatsApp = (pedido: Pedido) => {
-    const mensaje = `Pedido: ${pedido.Nombre}\nDescripción: ${pedido.Descripcion}\nObservaciones: ${pedido.Observaciones}\nImagen: ${pedido.Imagen}`;
+    const mensaje = `\nDescripción: ${pedido.Descripcion}\nObservaciones: ${pedido.Observaciones}\nImagen: ${pedido.Imagen}`;
     const mensajeCodificado = encodeURIComponent(mensaje);
-    const grupoWhatsApp = "https://chat.whatsapp.com/C7QdcEIqxxEHvVIn9w7kQC";
+    const grupoWhatsApp = "https://chat.whatsapp.com/Dxiz1ImYMJaCg9ibEN58ay";
     window.open(`https://api.whatsapp.com/send?text=${mensajeCodificado}&link=${grupoWhatsApp}`, "_blank");
   };
 
@@ -285,7 +285,7 @@ const PedidosPage = () => {
                       font-semibold 
                       text-gray-800
                     ">
-                      {pedido.Nombre}{pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
+                      {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
                     </h2>
                     <span className="
                       flex 

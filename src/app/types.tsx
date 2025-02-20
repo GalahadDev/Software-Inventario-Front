@@ -15,7 +15,10 @@ export interface Pedido {
     UsuarioID: string
     nro_tlf: string,
     Pagado: string,
-    Nombre_Vendedor: string
+    Nombre_Vendedor: string,
+    tela:String,
+    color:string,
+    sub_Vendedor:string
 
   }
 
@@ -62,6 +65,9 @@ export type SaleForm = {
   usuario_id: string | null;
   nro_tlf: string,
   pagado: string;
+  tela:string,
+  color:string,
+  subVendedor:string
 };
 export type StatusColor = {
   [key in 'pendiente' | 'en proceso' | 'completado' | 'cancelado']: string;
@@ -69,4 +75,18 @@ export type StatusColor = {
 export interface PageProps<T> {
   params: T;
   searchParams?: any;
+}
+
+export interface User {
+  ID: string;
+  Nombre: string;
+  Email?: string;
+  usuario?: string;
+  Rol: string;
+  Contrasena: string;
+  Cedula:string;
+  Numero_Cuenta:string;
+  Tipo_Cuenta:string;
+  Nombre_Banco:string;
+
 }

@@ -2,14 +2,8 @@
 
 import React, { useState } from 'react';
 import { editUser } from '../functions/usersFunctions';
+import { User } from "../types";
 
-interface User {
-  ID: string;
-  Nombre: string;
-  Contrasena: string;
-  email?: string;
-  Rol: string;
-}
 
 interface EditUserModalProps {
   isOpen: boolean;

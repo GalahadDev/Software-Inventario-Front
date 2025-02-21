@@ -19,11 +19,10 @@ export const sendSalesData = async (sales: SaleForm) => {
     }
     formData.append("observaciones", sales.observaciones.toString());
     formData.append("forma_pago", sales.forma_pago.toString());
+
     formData.append("nro_tlf", sales.nro_tlf.toString());
-    formData.append("tela", sales.tela)
-    formData.append("color", sales.color)
-    formData.append("sub_vendedor", sales.subVendedor)
-    formData.append("comision_sugerida",sales.Comision_Sugerida.toString()); 
+
+    //
     if (sales.usuario_id) {
       formData.append("usuario_id", sales.usuario_id.toString());
     } else {

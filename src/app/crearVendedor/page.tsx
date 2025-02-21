@@ -103,7 +103,7 @@ const CrearVendedor = () => {
      Este es tu usuario para ingresar pedidos en nuestra plataforma: Usuario: ${apiResponse.data.username}
      y este es el link de acceso a la plataforma ${"https://kings-bed-sm.onrender.com/login"}`;
     const mensajeCodificado = encodeURIComponent(mensaje);
-    const numeroWhatsApp = "56969151941"; 
+    const numeroWhatsApp = "56920596304"; 
     
     // Enlace directo para abrir WhatsApp
     window.open(`https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`, "_blank");

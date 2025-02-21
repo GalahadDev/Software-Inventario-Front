@@ -9,7 +9,6 @@ function DashVendedor() {
 
 const navigation = [  
   { name: "Ver Pedidos", href: "/vistapedidosvendedor" },
-  { name: "Informacion Bancaria", href: "/bankData"}
   
 ]
 

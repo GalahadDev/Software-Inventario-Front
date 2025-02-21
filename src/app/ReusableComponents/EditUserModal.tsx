@@ -16,9 +16,10 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
   const [formData, setFormData] = useState({
     Nombre: user?.Nombre || '',
     Contrasena: user?.Contrasena || '',
-    Email: user?.Email || '',
+    Email: user?.Email ?? '',
     Rol: user?.Rol || '',
   });
+  console.log(user)
 
   // Manejar cambios en los inputs
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

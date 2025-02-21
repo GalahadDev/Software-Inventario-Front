@@ -80,7 +80,7 @@ export interface PageProps<T> {
 export interface User {
   ID: string;
   Nombre: string;
-  Email?: string;
+  email?: string;
   usuario?: string;
   Rol: string;
   Contrasena: string;

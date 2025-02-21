@@ -44,14 +44,17 @@ function UserList() {
     fetchUsers();
   }, []);
 
-  const openModal = (user: User) => {
-    if (user.Rol === "vendedor") {
-      setShowWarning(true);
-      return;
-    }
-    setSelectedUser(user);
-    setIsModalOpen(true);
-  };
+ const openModal = (user: User) => {
+  console.log("Usuario seleccionado para edición:", user);
+  if (user.Rol === "vendedor") {
+    setShowWarning(true);
+    return;
+  }
+
+  setSelectedUser(user);
+  setIsModalOpen(true);
+};
+
 
   const closeModal = () => {
     setIsModalOpen(false);

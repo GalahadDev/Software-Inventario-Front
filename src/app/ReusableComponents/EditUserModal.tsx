@@ -1,15 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { editUser } from '../functions/usersFunctions';
-
-interface User {
-  ID: string;
-  Nombre: string;
-  Contrasena: string;
-  email?: string;
-  Rol: string;
-}
+import { User } from "../types";
 
 interface EditUserModalProps {
   isOpen: boolean;
@@ -20,35 +13,53 @@ interface EditUserModalProps {
 
 export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalProps) {
   const [formData, setFormData] = useState({
-    Nombre: user?.Nombre || '',
-    Contrasena: user?.Contrasena || '',
-    email: user?.email || '',
-    Rol: user?.Rol || '',
+    Nombre: '',
+    Contrasena: '',
+    Email: '',
+    Rol: ''
   });
 
-  // Manejar cambios en los inputs
+  // Cargar datos del usuario
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        Nombre: user.Nombre || '',
+        Contrasena: user.Contrasena || '',
+        Email: user.Email || '',
+        Rol: user.Rol || ''
+      });
+    }
+  }, [user]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    
+    // Bloquear edición de Email para vendedores
+    if (name === "Email" && !['administrador', 'gestor'].includes(formData.Rol)) return;
+
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
-  // Enviar la solicitud PUT al servidor
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
     try {
-      const updatedUser = await editUser(user.ID, formData);
-      onSave(updatedUser); // Notificar al componente padre
-      onClose(); // Cerrar el modal
-      
-      
+      const payload = {
+        Nombre: formData.Nombre,
+        Contrasena: formData.Contrasena,
+        ...(['administrador', 'gestor'].includes(formData.Rol) && { Email: formData.Email }),
+        Rol: formData.Rol
+      };
+
+      const updatedUser = await editUser(user.ID, payload);
+      onSave(updatedUser);
+      onClose();
     } catch (error) {
       console.error('Error al actualizar usuario:', error);
-     
     }
   };
 
@@ -60,8 +71,9 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
         <h2 className="text-xl font-semibold mb-4 text-black">Editar Usuario</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
+            {/* Campo Nombre */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Nombre</label>
+              <label className="block text-sm font-medium text-gray-700">Nombre completo</label>
               <input
                 type="text"
                 name="Nombre"
@@ -72,10 +84,26 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
               />
             </div>
 
+            {/* Campo Email (solo para personal administrativo) */}
+            {['administrador', 'gestor'].includes(formData.Rol) && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  name="Email"
+                  value={formData.Email}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
+                  required
+                />
+              </div>
+            )}
+
+            {/* Campo Contraseña */}
             <div>
               <label className="block text-sm font-medium text-gray-700">Contraseña</label>
               <input
-                type="text"
+                type="password"
                 name="Contrasena"
                 value={formData.Contrasena}
                 onChange={handleInputChange}
@@ -83,16 +111,7 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
-              />
-            </div>
+            {/* Selector de Rol */}
             <div>
               <label className="block text-sm font-medium text-gray-700">Rol</label>
               <select
@@ -102,12 +121,13 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
                 required
               >
-                <option value="administrador">administrador</option>
-                <option value="vendedor">vendedor</option>
-                <option value="gestor">gestor</option>
+                <option value="administrador">Administrador</option>
+                <option value="gestor">Gestor</option>
+                <option value="vendedor">Vendedor</option>
               </select>
             </div>
           </div>
+
           <div className="mt-6 flex justify-end space-x-4">
             <button
               type="button"
@@ -120,7 +140,7 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
             >
-              Guardar Cambios
+              Guardar
             </button>
           </div>
         </form>

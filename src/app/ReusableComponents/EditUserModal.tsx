@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { editUser } from '../functions/usersFunctions';
 import { User } from "../types";
 
-
 interface EditUserModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -16,12 +15,11 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
   const [formData, setFormData] = useState({
     Nombre: user?.Nombre || '',
     Contrasena: user?.Contrasena || '',
-    Email: user?.Email ?? '',
+    Email: user?.Rol === "administrador" || user?.Rol === "gestor" ? user?.Email || '' : '',
+    Usuario: user?.Rol === "vendedor" ? user?.Email || '' : '',
     Rol: user?.Rol || '',
   });
-  console.log(user)
 
-  // Manejar cambios en los inputs
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -30,20 +28,16 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
     }));
   };
 
-  // Enviar la solicitud PUT al servidor
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
     try {
       const updatedUser = await editUser(user.ID, formData);
-      onSave(updatedUser); // Notificar al componente padre
-      onClose(); // Cerrar el modal
-      
-      
+      onSave(updatedUser);
+      onClose();
     } catch (error) {
       console.error('Error al actualizar usuario:', error);
-     
     }
   };
 
@@ -78,16 +72,30 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                name="Email"
-                value={formData.Email}
-                onChange={handleInputChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
-              />
-            </div>
+            {formData.Rol === "administrador" || formData.Rol === "gestor" ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  name="Email"
+                  value={formData.Email}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Usuario</label>
+                <input
+                  type="text"
+                  name="Usuario"
+                  value={formData.Usuario}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
+                />
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Rol</label>
               <select

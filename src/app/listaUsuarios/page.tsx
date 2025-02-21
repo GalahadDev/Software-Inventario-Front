@@ -141,12 +141,12 @@ function UserList() {
 </div>
 
   
-     {/*<EditUserModal
+     {<EditUserModal
         isOpen={isModalOpen}
         onClose={closeModal}
         user={selectedUser}
         onSave={handleSave}
-      />*/}
+      />}
     </div>
   );
 }

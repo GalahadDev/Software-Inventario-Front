@@ -14,10 +14,10 @@ interface EditUserModalProps {
 
 export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalProps) {
   const [formData, setFormData] = useState({
-    Nombre: user?.Nombre,
-    Contrasena: user?.Contrasena,
-    Email: user?.Email,
-    Rol: user?.Rol
+    Nombre: user?.Nombre || '',
+    Contrasena: user?.Contrasena || '',
+    Email: user?.Email || '',
+    Rol: user?.Rol || '',
   });
 
   // Manejar cambios en los inputs
@@ -81,7 +81,7 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
               <label className="block text-sm font-medium text-gray-700">Email</label>
               <input
                 type="email"
-                name="email"
+                name="Email"
                 value={formData.Email}
                 onChange={handleInputChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"

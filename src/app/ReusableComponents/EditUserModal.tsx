@@ -76,7 +76,7 @@ export function EditUserModal({ isOpen, onClose, user, onSave }: EditUserModalPr
               <div>
                 <label className="block text-sm font-medium text-gray-700">Email</label>
                 <input
-                  type="email"
+                  type="text"
                   name="Email"
                   value={formData.Email}
                   onChange={handleInputChange}

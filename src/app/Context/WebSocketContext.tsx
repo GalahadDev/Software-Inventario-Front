@@ -63,7 +63,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     const baseUrl = process.env.NEXT_PUBLIC_WS_URL;
     const url = `${baseUrl}?token=${token}`;
-    console.log("Conectando a WebSocket:", url);
+    
 
     setIsConnecting(true);
     shouldReconnect.current = true;
@@ -72,13 +72,13 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     ws.current.onopen = () => {
       setIsConnected(true);
       setIsConnecting(false);
-      console.log("WebSocket Conectado ✅");
+      
     };
 
     ws.current.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log("Mensaje recibido:", message);
+       
 
         setMessages((prev) => [...prev, message]);
 
@@ -96,7 +96,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     ws.current.onclose = () => {
       setIsConnected(false);
       setIsConnecting(false);
-      console.log("WebSocket Cerrado 🔴");
+      
 
       if (shouldReconnect.current) {
         setTimeout(() => connectWebSocket(), 5000);

@@ -25,7 +25,7 @@ export function BankData() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Datos del formulario:', formData);
+   
     updateBankData(formData, "/users/bank-data"); 
 
     setFormData({

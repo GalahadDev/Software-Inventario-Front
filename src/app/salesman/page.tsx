@@ -181,7 +181,7 @@ function SalesMan() {
                   type="text"
                   name="color"
                   placeholder="Color"
-                  value={sales.tela}
+                  value={sales.color}
                   onChange={(e) => handleInputChange(e, sales, setSales)}
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
@@ -230,13 +230,13 @@ function SalesMan() {
                   type="text"
                   name="subVendedor"
                   placeholder="Nombre del Vendedor Asociado"
-                  value={sales.tela}
+                  value={sales.subVendedor}
                   onChange={(e) => handleInputChange(e, sales, setSales)}
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
                 <input
                   type="text"
-                  name="Comision_sugerida"
+                  name="Comision_Sugerida"
                   placeholder="Comision Sugerida"
                   value={sales.Comision_Sugerida}
                   onChange={(e) => handleInputChange(e, sales, setSales)}

@@ -21,10 +21,6 @@ export const getUsers = async () => {
   ) => {
     try {
       
-      console.log('Enviando datos de actualización:', {
-        userId,
-        updatedData
-      });
   
       const response = await api.put(`/users/${userId}`, updatedData);
       return response.data;

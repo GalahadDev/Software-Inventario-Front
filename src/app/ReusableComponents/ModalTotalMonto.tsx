@@ -6,18 +6,22 @@ interface ComisionModalProps {
   isOpen: boolean;
   onClose: () => void;
   totalMonto: number;
+  totalComisionSugerida: number; // Nueva prop para la comisión sugerida
   startDate: Date | null;
   endDate: Date | null;
   pedidosEntregados: number;
+  pedidosFiltrados: number
 }
 
 export const ComisionModal: React.FC<ComisionModalProps> = ({
   isOpen,
   onClose,
   totalMonto,
+  totalComisionSugerida, // Recibe la comisión sugerida
   startDate,
   endDate,
   pedidosEntregados,
+  pedidosFiltrados
 }) => {
   if (!isOpen) return null;
 
@@ -26,13 +30,24 @@ export const ComisionModal: React.FC<ComisionModalProps> = ({
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
         {/* Título */}
         <h3 className="text-xl font-bold mb-4 text-center text-gray-800">
-          Comisión Total Calculada
+          Comisiones Calculadas
         </h3>
 
-        {/* Monto total */}
-        <p className="text-3xl font-bold text-green-600 text-center">
-          ${totalMonto.toFixed(2)}
-        </p>
+        {/* Monto total de comisión normal */}
+        <div className="mb-4">
+          <p className="text-lg font-semibold text-gray-700">Total Comisión:</p>
+          <p className="text-3xl font-bold text-green-600 text-center">
+            ${totalMonto.toFixed(2)}
+          </p>
+        </div>
+
+        {/* Monto total de comisión sugerida */}
+        <div className="mb-4">
+          <p className="text-lg font-semibold text-gray-700">Total Comisión Sugerida:</p>
+          <p className="text-3xl font-bold text-blue-600 text-center">
+            ${totalComisionSugerida.toFixed(2)}
+          </p>
+        </div>
 
         {/* Detalles adicionales */}
         <div className="mt-6 text-center space-y-2">

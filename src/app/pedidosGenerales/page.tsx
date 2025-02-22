@@ -6,7 +6,7 @@ import { Pedido } from "app/types";
 import { DollarSign, CreditCard, Truck, Package, MapPin, ClipboardList } from "lucide-react";
 import { SearchDate } from "../ReusableComponents/SearchDate";
 import { Header } from "../ReusableComponents/Header";
-import { ModalTotalMonto } from "app/ReusableComponents/ModalTotalMonto";
+import { ComisionModal } from "app/ReusableComponents/ModalTotalMonto";
 import { usePedidosContext } from "../Context/PedidosContext";
 import { useWebSocket } from "../Context/WebSocketContext";
 import { SearchBar } from "../ReusableComponents/SearchBar";
@@ -39,9 +39,9 @@ const PedidosPage = () => {
       }
     }
   }, [newOrder, pedidos, setPedidosList]);
-  
-  
-  
+
+
+
 
   useEffect(() => {
     if (pedidos) {
@@ -64,26 +64,26 @@ const PedidosPage = () => {
 
   const calcularTotalMonto = () => {
     if (!startDate || !endDate) {
-      setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO")
-      
-      setTimeout(()=>{
-        setErrorMessage("")
-      },2000)
-      
+      setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
+      setTimeout(() => setErrorMessage(""), 2000);
       return;
-
-      
     }
 
     const total = filteredPedidos
       .filter((pedido) => {
         const pedidoFecha = new Date(pedido.FechaCreacion);
-        const fechaInicioObj = new Date(startDate);
-        const fechaTerminoObj = new Date(endDate);
-
-        return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
+        return (
+          pedidoFecha >= startDate &&
+          pedidoFecha <= endDate &&
+          pedido.Estado === "Entregado"
+        );
       })
-      .reduce((sum, pedido) => sum + (pedido.Monto ?? 0), 0);
+      .reduce((sum, pedido) => {
+        const comision = typeof pedido.Monto === 'string'
+          ? parseFloat(pedido.Monto)
+          : Number(pedido.Monto) || 0;
+        return sum + comision;
+      }, 0);
 
     setTotalMonto(total);
     setIsModalOpen(true);
@@ -107,7 +107,7 @@ const PedidosPage = () => {
 
       const matchesSearch = searchTerm
         ? Object.values(pedido)
-            .some(value => value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()))
+          .some(value => value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()))
         : true;
 
       return isInRange && matchesSearch;
@@ -188,26 +188,29 @@ const PedidosPage = () => {
                 onClick={calcularTotalMonto}
                 className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
               >
-                Calcular Total de Montos
+                Calcular Total de Comision
               </button>
-              
+
               <button
                 onClick={() => setShowPagados(!showPagados)}
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
               >
-                
+
                 {showPagados ? "Ver No Pagados" : "Ver Pagados"}
               </button>
-              
+
             </div>
             <span className="text-red-700">{errorMessage}</span>
 
             <SearchBar onSearch={setSearchTerm} placeholder="Buscar..." />
-
             {isModalOpen && (
-              <ModalTotalMonto
-                totalMonto={totalMonto}
+              <ComisionModal
+                isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
+                totalMonto={totalMonto}
+                startDate={startDate}
+                endDate={endDate}
+                pedidosEntregados={filteredPedidos.filter(pedido => pedido.Estado === "Entregado").length}
               />
             )}
           </div>
@@ -222,23 +225,23 @@ const PedidosPage = () => {
               const fecha = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES");
 
               return (
-                <div
-                key={`${pedido.ID}-${pedido.Nombre}`}
-                className={`
-                  rounded-xl 
-                  shadow-lg 
-                  hover:shadow-xl 
-                  transition-all 
-                  duration-300 
-                  overflow-hidden 
-                  cursor-pointer 
-                  transform 
-                  origin-center 
-                  ${pedido.Atendido ? 'bg-white' : 'bg-yellow-200 animate-pulse-scale'}
-                `}
-                onClick={() => handleCardClick(pedido)}
-              >
-                <div className="relative">
+                   <div
+                                  key={`${pedido.ID}-${pedido.Nombre}`}
+                                  className={`
+                                    rounded-xl 
+                                    shadow-lg 
+                                    hover:shadow-xl 
+                                    transition-all 
+                                    duration-300 
+                                    overflow-hidden 
+                                    cursor-pointer 
+                                    transform 
+                                    origin-center 
+                                    ${pedido.Atendido ? 'bg-white' : 'bg-yellow-200 animate-pulse-scale'}
+                                  `}
+                                  onClick={() => handleCardClick(pedido)}
+                                >
+                                 <div className="relative">
                   <img
                     src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
                     alt={`Pedido de ${pedido.Nombre}`}
@@ -263,16 +266,8 @@ const PedidosPage = () => {
                   >
                     {pedido.Estado || "Sin estado"}
                   </div>
-                  <span className="
-                    flex 
-                    items-center 
-                    text-black 
-                    font-semibold
-                  ">
-                    
-                  </span>
                 </div>
-
+                
                 <div className="p-6">
                   <div className="
                     flex 
@@ -297,122 +292,82 @@ const PedidosPage = () => {
                       {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
                     </span>
                   </div>
-
+                
                   <div className="space-y-3">
-                    <div className="
-                      flex 
-                      items-start
-                    ">
-                      <Package className="
-                        w-5 
-                        h-5 
-                        mr-3 
-                        text-gray-500 
-                        flex-shrink-0 
-                        mt-1
-                      " />
-                      <p className="text-gray-600">{pedido.Descripcion}</p>
+                    {/* Descripción */}
+                    <div className="flex items-start">
+                      <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+                      <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
                     </div>
-
-                    <div className="
-                      flex 
-                      items-center
-                    ">
-                      <MapPin className="
-                        w-5 
-                        h-5 
-                        mr-3 
-                        text-gray-500
-                      " />
-                      <p className="text-gray-600">{pedido.Direccion}</p>
-                    </div>
-
-                    <div className="
-                      flex 
-                      items-center
-                    ">
-                      <CreditCard className="
-                        w-5 
-                        h-5 
-                        mr-3 
-                        text-gray-500
-                      " />
-                      <p className="text-gray-600">{pedido.Forma_Pago}</p>
-                    </div>
-
-                    {pedido.Observaciones && (
-                      <div className="
-                        flex 
-                        items-start
-                      ">
-                        <ClipboardList className="
-                          w-5 
-                          h-5 
-                          mr-3 
-                          text-gray-500 
-                          flex-shrink-0 
-                          mt-1
-                        " />
-                        <p className="text-gray-600">{pedido.Observaciones}</p>
+                
+                    {/* Tela */}
+                    {pedido.Tela && (
+                      <div className="flex items-center">
+                        <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                        <p className="text-gray-600">Tela: {pedido.Tela}</p>
                       </div>
                     )}
-
-                    <div className="
-                      flex 
-                      flex-col 
-                      space-y-2 
-                      pt-3 
-                      border-t 
-                      border-gray-100
-                    ">
-                      <div className="
-                        flex 
-                        items-center
-                      ">
-                        <Truck className="
-                          w-5 
-                          h-5 
-                          mr-2 
-                          text-gray-500
-                        " />
-                        <span className="text-gray-600">{pedido.Fletero || "Sin Asignar"}</span>
+                
+                    {/* Color */}
+                    {pedido.Color && (
+                      <div className="flex items-center">
+                        <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                        <p className="text-gray-600">Color: {pedido.Color}</p>
                       </div>
-                      <div className="
-                        flex 
-                        items-center
-                      ">
+                    )}
+                
+                    {/* Dirección */}
+                    <div className="flex items-center">
+                      <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                      <p className="text-gray-600">Direccion: {pedido.Direccion}</p>
+                    </div>
+                
+                    {/* Forma de pago */}
+                    <div className="flex items-center">
+                      <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+                      <p className="text-gray-600"> Forma De pago: {pedido.Forma_Pago}</p>
+                    </div>
+                
+                    {/* Observaciones */}
+                    {pedido.Observaciones && (
+                      <div className="flex items-start">
+                        <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+                        <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
+                      </div>
+                    )}
+                
+                    {/* Fletero y comisiones */}
+                    <div className="flex flex-col space-y-2 pt-3 border-t border-gray-100">
+                      <div className="flex items-center">
+                        <Truck className="w-5 h-5 mr-2 text-gray-500" />
+                        <span className="text-gray-600">Despacho: {pedido.Fletero || "Sin Asignar"}</span>
+                      </div>
+                      <div className="flex items-center">
                         <span className="text-sm text-gray-500">Comisión: ${pedido.Monto || "0"}</span>
                       </div>
-                      <div className="
-                        flex 
-                        items-center
-                      ">
-                        <span className="text-sm text-gray-600">Estado: {pedido.Pagado}</span>
-                        
+                      <div className="flex items-center">
+                        <span className="text-sm text-gray-500">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</span>
                       </div>
-                      <span className="text-sm text-gray-600">Vendedor: {pedido.Nombre_Vendedor}</span>
+                      
                     </div>
-
-                    <div className="
-                      flex 
-                      items-center
-                    ">
-                      <MapPin className="
-                        w-5 
-                        h-5 
-                        mr-3 
-                        text-gray-500
-                      " />
+                
+                    {/* Fecha */}
+                    <div className="flex items-center">
+                      <MapPin className="w-5 h-5 mr-3 text-gray-500" />
                       <p className="text-gray-600">{fecha}</p>
                     </div>
+                
+                   
+                  </div>
+                </div>
 
-                    <div className="mt-4">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSendToWhatsApp(pedido);
-                        }}
-                        className="
+                      <div className="mt-4">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSendToWhatsApp(pedido);
+                          }}
+                          className="
                           flex 
                           items-center 
                           justify-center 
@@ -425,13 +380,11 @@ const PedidosPage = () => {
                           hover:bg-green-600 
                           transition
                         "
-                      >
-                        Enviar a WhatsApp
-                      </button>
+                        >
+                          Enviar a WhatsApp
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </div>
               );
             })}
           </div>

@@ -16,8 +16,8 @@ export interface Pedido {
     nro_tlf: string,
     Pagado: string,
     Nombre_Vendedor: string,
-    tela:String,
-    color:string,
+    Tela:String,
+    Color:string,
     sub_Vendedor:string
     Comision_Sugerida: string
 

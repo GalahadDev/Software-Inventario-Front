@@ -7,7 +7,7 @@ import { Pedido } from "app/types";
 import { DollarSign, CreditCard, Truck, Package, MapPin, ClipboardList } from "lucide-react";
 import { SearchDate } from "../../ReusableComponents/SearchDate";
 import { Header } from "app/ReusableComponents/Header";
-import { ModalTotalMonto } from "app/ReusableComponents/ModalTotalMonto";
+import { ComisionModal } from "app/ReusableComponents/ModalTotalMonto";
 import { usePedidosContext } from "app/Context/PedidosContext";
 import { useWebSocket } from "app/Context/WebSocketContext";
 import { SearchBar } from "app/ReusableComponents/SearchBar";
@@ -60,13 +60,13 @@ const PedidosPage = () => {
 
   // Agregar nuevo pedido desde WebSocket
   useEffect(() => {
-     if (newOrder) {
-       // Verificar si el pedido ya existe antes de agregarlo
-       if (!pedidos.some((pedido) => pedido.ID === newOrder.ID)) {
-         setPedidosList([...pedidos, newOrder]);
-       }
-     }
-   }, [newOrder, pedidos, setPedidosList]);
+    if (newOrder) {
+      // Verificar si el pedido ya existe antes de agregarlo
+      if (!pedidos.some((pedido) => pedido.ID === newOrder.ID)) {
+        setPedidosList([...pedidos, newOrder]);
+      }
+    }
+  }, [newOrder, pedidos, setPedidosList]);
 
   // Manejar clic en la tarjeta
   const handleCardClick = async (pedido: Pedido) => {
@@ -122,6 +122,7 @@ const PedidosPage = () => {
   const handleCalculateTotal = () => {
     if (!startDate || !endDate) {
       setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
+      setTimeout(() => setErrorMessage(""), 2000);
       return;
     }
 
@@ -209,9 +210,13 @@ const PedidosPage = () => {
             <SearchBar onSearch={setSearchTerm} placeholder="Buscar..." />
     
             {isModalOpen && (
-              <ModalTotalMonto
-                totalMonto={totalMonto}
+              <ComisionModal
+                isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
+                totalMonto={totalMonto}
+                startDate={startDate}
+                endDate={endDate}
+                pedidosEntregados={pedidosNoPagados.filter(pedido => pedido.Estado === "Entregado").length}
               />
             )}
           </div>
@@ -245,163 +250,125 @@ const PedidosPage = () => {
                   `}
                   onClick={() => handleCardClick(pedido)}
                 >
-                  <div className="relative">
-                    <img
-                      src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
-                      alt={`Pedido de ${pedido.Nombre}`}
-                      className="
-                        w-full 
-                        h-48 
-                        object-cover
-                      "
-                    />
-                    <div
-                      className={`
-                        absolute 
-                        top-4 
-                        right-4 
-                        px-3 
-                        py-1 
-                        rounded-full 
-                        text-sm 
-                        font-medium 
-                        ${getStatusColor(pedido.Estado)}
-                      `}
-                    >
-                      {pedido.Estado || "Sin estado"}
-                    </div>
-                  </div>
+                 <div className="relative">
+  <img
+    src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
+    alt={`Pedido de ${pedido.Nombre}`}
+    className="
+      w-full 
+      h-48 
+      object-cover
+    "
+  />
+  <div
+    className={`
+      absolute 
+      top-4 
+      right-4 
+      px-3 
+      py-1 
+      rounded-full 
+      text-sm 
+      font-medium 
+      ${getStatusColor(pedido.Estado)}
+    `}
+  >
+    {pedido.Estado || "Sin estado"}
+  </div>
+</div>
 
-                  <div className="p-6">
-                    <div className="
-                      flex 
-                      items-center 
-                      justify-between 
-                      mb-4
-                    ">
-                      <h2 className="
-                        text-xl 
-                        font-semibold 
-                        text-gray-800
-                      ">
-                        {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
-                      </h2>
-                      <span className="
-                        flex 
-                        items-center 
-                        text-green-600 
-                        font-semibold
-                      ">
-                        <DollarSign className="w-5 h-5 mr-1" />
-                        {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
-                      </span>
-                    </div>
+<div className="p-6">
+  <div className="
+    flex 
+    items-center 
+    justify-between 
+    mb-4
+  ">
+    <h2 className="
+      text-xl 
+      font-semibold 
+      text-gray-800
+    ">
+      {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
+    </h2>
+    <span className="
+      flex 
+      items-center 
+      text-green-600 
+      font-semibold
+    ">
+      <DollarSign className="w-5 h-5 mr-1" />
+      {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
+    </span>
+  </div>
 
-                    <div className="space-y-3">
-                      <div className="
-                        flex 
-                        items-start
-                      ">
-                        <Package className="
-                          w-5 
-                          h-5 
-                          mr-3 
-                          text-gray-500 
-                          flex-shrink-0 
-                          mt-1
-                        " />
-                        <p className="text-gray-600">{pedido.Descripcion}</p>
-                      </div>
+  <div className="space-y-3">
+    {/* Descripción */}
+    <div className="flex items-start">
+      <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+      <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
+    </div>
 
-                      <div className="
-                        flex 
-                        items-center
-                      ">
-                        <MapPin className="
-                          w-5 
-                          h-5 
-                          mr-3 
-                          text-gray-500
-                        " />
-                        <p className="text-gray-600">{pedido.Direccion}</p>
-                      </div>
+    {/* Tela */}
+    {pedido.Tela && (
+      <div className="flex items-center">
+        <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+        <p className="text-gray-600">Tela: {pedido.Tela}</p>
+      </div>
+    )}
 
-                      <div className="
-                        flex 
-                        items-center
-                      ">
-                        <CreditCard className="
-                          w-5 
-                          h-5 
-                          mr-3 
-                          text-gray-500
-                        " />
-                        <p className="text-gray-600">{pedido.Forma_Pago}</p>
-                      </div>
+    {/* Color */}
+    {pedido.Color && (
+      <div className="flex items-center">
+        <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+        <p className="text-gray-600">Color: {pedido.Color}</p>
+      </div>
+    )}
 
-                      {pedido.Observaciones && (
-                        <div className="
-                          flex 
-                          items-start
-                        ">
-                          <ClipboardList className="
-                            w-5 
-                            h-5 
-                            mr-3 
-                            text-gray-500 
-                            flex-shrink-0 
-                            mt-1
-                          " />
-                          <p className="text-gray-600">{pedido.Observaciones}</p>
-                        </div>
-                      )}
+    {/* Dirección */}
+    <div className="flex items-center">
+      <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+      <p className="text-gray-600">Direccion: {pedido.Direccion}</p>
+    </div>
 
-                      <div className="
-                        flex 
-                        flex-col 
-                        space-y-2 
-                        pt-3 
-                        border-t 
-                        border-gray-100
-                      ">
-                        <div className="
-                          flex 
-                          items-center
-                        ">
-                          <Truck className="
-                            w-5 
-                            h-5 
-                            mr-2 
-                            text-gray-500
-                          " />
-                          <span className="text-gray-600">{pedido.Fletero || "Sin Asignar"}</span>
-                        </div>
-                        <div className="
-                          flex 
-                          items-center
-                        ">
-                          <span className="text-sm text-gray-500">Comisión: ${pedido.Monto || "0"}</span>
-                        </div>
-                        <div className="
-                          flex 
-                          items-center
-                        ">
-                          <span className="text-sm text-gray-600">Estado: {pedido.Pagado}</span>
-                        </div>
-                      </div>
+    {/* Forma de pago */}
+    <div className="flex items-center">
+      <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+      <p className="text-gray-600"> Forma De pago: {pedido.Forma_Pago}</p>
+    </div>
 
-                      <div className="
-                        flex 
-                        items-center
-                      ">
-                        <MapPin className="
-                          w-5 
-                          h-5 
-                          mr-3 
-                          text-gray-500
-                        " />
-                        <p className="text-gray-600">{fecha}</p>
-                      </div>
+    {/* Observaciones */}
+    {pedido.Observaciones && (
+      <div className="flex items-start">
+        <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+        <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
+      </div>
+    )}
+
+    {/* Fletero y comisiones */}
+    <div className="flex flex-col space-y-2 pt-3 border-t border-gray-100">
+      <div className="flex items-center">
+        <Truck className="w-5 h-5 mr-2 text-gray-500" />
+        <span className="text-gray-600">Despacho: {pedido.Fletero || "Sin Asignar"}</span>
+      </div>
+      <div className="flex items-center">
+        <span className="text-sm text-gray-500">Comisión: ${pedido.Monto || "0"}</span>
+      </div>
+      <div className="flex items-center">
+        <span className="text-sm text-gray-500">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</span>
+      </div>
+      
+    </div>
+
+    {/* Fecha */}
+    <div className="flex items-center">
+      <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+      <p className="text-gray-600">{fecha}</p>
+    </div>
+
+   
+  </div>
+</div>
 
                       <div className="mt-4">
                         <button
@@ -427,8 +394,7 @@ const PedidosPage = () => {
                         </button>
                       </div>
                     </div>
-                  </div>
-                </div>
+                 
               );
             })}
           </div>

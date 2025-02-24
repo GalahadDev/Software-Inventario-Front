@@ -1,77 +1,105 @@
 "use client"
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { updateBankData } from "../functions/bankUpdate"
+import { User } from '../types';
 
-// Definimos una interface para especificar que
-// el componente puede recibir la prop onSuccess
-interface BankDataProps {
-  onSuccess?: () => void;
-}
 
-export function BankData({ onSuccess }: BankDataProps) {
-  const [bank, setBank] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
-  // Agrega más estados si lo requieres
+export function BankData() {
+  const [formData, setFormData] = useState<Partial<User>>({
+    Cedula: '',
+    Numero_Cuenta: '',
+    Tipo_Cuenta: '',
+    Nombre_Banco: '',
+    Email: ''
+  });
 
-  // Función que maneja la lógica de actualización
-  const handleUpdateBankData = async () => {
-    try {
-      // Ejemplo de lógica de actualización, p.ej. una llamada a la API
-      // const response = await fetch("/api/updateBankInfo", {
-      //   method: "POST",
-      //   body: JSON.stringify({ bank, accountNumber }),
-      //   ...
-      // });
-      // if (response.ok) {
-      //   // Si fue exitoso, llama a onSuccess
-      //   onSuccess?.();
-      // }
-
-      // Por ahora asumimos que todo sale bien y llamamos directamente:
-      onSuccess?.();
-    } catch (error) {
-      console.error("Error al actualizar la información bancaria:", error);
-      // Manejo de errores
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
-  // Render del formulario
+  
+ 
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Datos del formulario:', formData);
+    updateBankData(formData, "/users/bank-data"); 
+
+    setFormData({
+        Cedula: '',
+        Numero_Cuenta: '',
+        Tipo_Cuenta: '',
+        Nombre_Banco: '',
+        Email: ''
+    })
+    
+  };
+
   return (
-    <div className="p-4 border rounded">
-      <h2 className="text-xl mb-4">Actualizar Información Bancaria</h2>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleUpdateBankData();
-        }}
-      >
-        <div className="mb-4">
-          <label className="block font-medium">Banco:</label>
+    <div className="min-h-1 bg-gray-100 flex items-center justify-center p-4 mt-12">
+      <div className="bg-white rounded-lg shadow-md p-8 w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center text-black">Información Bancaria</h2>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            value={bank}
-            onChange={(e) => setBank(e.target.value)}
-            className="border p-2 w-full"
+            name="cedula"
+            placeholder="Cédula/RUT"
+            value={formData.Cedula}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
           />
-        </div>
 
-        <div className="mb-4">
-          <label className="block font-medium">Número de cuenta:</label>
           <input
             type="text"
-            value={accountNumber}
-            onChange={(e) => setAccountNumber(e.target.value)}
-            className="border p-2 w-full"
+            name="numero_cuenta"
+            placeholder="Número de cuenta"
+            value={formData.Numero_Cuenta}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
           />
-        </div>
 
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Guardar
-        </button>
-      </form>
+          <input
+            type="text"
+            name="tipo_cuenta"
+            placeholder="Tipo de cuenta"
+            value={formData.Tipo_Cuenta}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+          />
+
+          <input
+            type="text"
+            name="nombre_banco"
+            placeholder="Banco"
+            value={formData.Nombre_Banco}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+          />
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Correo electrónico"
+            value={formData.Email}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+          />
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200 font-medium"
+          >
+            Guardar cambios
+          </button>
+        </form>
+
+        
+
+      </div>
     </div>
   );
 }

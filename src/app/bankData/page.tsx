@@ -3,12 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { BankData } from 'app/ReusableComponents/BankData';
 import { Header } from 'app/ReusableComponents/Header';
 import { getCurrentUser } from 'app/functions/getUserBankInfo';
-import { MostrarInfoBank } from '../ReusableComponents/MostarInfoBank';
+import { MostrarInfoBank } from 'app/ReusableComponents/MostarInfoBank';
+import { SuccessModal } from 'app/ReusableComponents/Exito';
 
 function Page() {
   const navigation = [
     { name: "Ver Pedidos", href: "/vistapedidosvendedor" },
-    { name: "Informacion Bancaria", href: "/bankData" }
+    { name: "Informacion Bancaria", href: "/bankData" },
   ];
 
   // Estado para almacenar los datos del usuario
@@ -17,6 +18,9 @@ function Page() {
   const [loading, setLoading] = useState(true);
   // Estado para manejar errores
   const [error, setError] = useState<string | null>(null);
+
+  // Estado para manejar la visibilidad del modal de éxito
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // useEffect para obtener los datos del usuario cuando el componente se monte
   useEffect(() => {
@@ -33,7 +37,7 @@ function Page() {
     };
 
     fetchUserData(); // Llamar a la función
-  }, []); // El arreglo vacío asegura que el efecto se ejecute solo una vez
+  }, []);
 
   // Mostrar un mensaje de carga mientras se obtienen los datos
   if (loading) {
@@ -45,13 +49,30 @@ function Page() {
     return <div>{error}</div>;
   }
 
+  // Función que se llamará cuando la actualización bancaria sea exitosa
+  const handleSuccess = () => {
+    setShowSuccessModal(true);
+  };
+
   return (
     <div>
       <Header navigation={navigation} />
-      {/* Agregamos padding-top para compensar la altura del header y aseguramos que el contenido esté por debajo */}
       <div className="flex flex-col items-center gap-0 pt-20">
-        <BankData />
+        {/* 
+          Pasamos la función handleSuccess como prop al componente BankData.
+          Cuando se actualice correctamente la información bancaria,
+          BankData llamará a esta función.
+        */}
+        <BankData onSuccess={handleSuccess} />
+
         <MostrarInfoBank bankInfo={userData} />
+
+        {/* Modal de Éxito controlado por el estado showSuccessModal */}
+        <SuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          message="¡Información bancaria actualizada exitosamente!"
+        />
       </div>
     </div>
   );

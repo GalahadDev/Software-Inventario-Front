@@ -4,7 +4,6 @@ export const pedidoScheme = z.object({
   nombre: z
     .string()
     .max(20, "El nombre no puede tener más de 20 caracteres")
-    .regex(/^[a-zA-Z\s]+$/, "El nombre solo puede contener letras y espacios"),
   descripcion: z
     .string()
     .max(100, "La descripción no puede tener más de 100 caracteres"),

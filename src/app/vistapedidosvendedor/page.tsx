@@ -102,25 +102,29 @@ const VistaPedidosVendedor = () => {
       setTimeout(() => setErrorMessage(""), 2000);
       return;
     }
-
+  
+    // Convertir las fechas de inicio y término al horario de Chile
+    const fechaInicioChile = toChileDate(startDate);
+    const fechaTerminoChile = toChileDate(endDate);
+  
     const total = filteredPedidos
       .filter((pedido) => {
-        const pedidoFecha = new Date(pedido.FechaCreacion);
+        // Convertir la fecha de creación del pedido al horario de Chile
+        const pedidoFecha = toChileDate(new Date(pedido.FechaCreacion));
+  
+        // Verificar si el pedido está en el rango de fechas y está entregado
         return (
-          pedidoFecha >= startDate &&
-          pedidoFecha <= endDate &&
+          pedidoFecha >= fechaInicioChile &&
+          pedidoFecha <= fechaTerminoChile &&
           pedido.Estado === "Entregado"
         );
       })
       .reduce((sum, pedido) => {
-        // Convertir a número y manejar valores nulos/undefined
-        const comision = typeof pedido.Comision_Sugerida === 'string' 
-          ? parseFloat(pedido.Comision_Sugerida) 
-          : Number(pedido.Comision_Sugerida) || 0;
-
-        return sum + comision;
+        // Convertir la comisión a número de manera segura
+        const comision = parseFloat(pedido.Comision_Sugerida);
+        return sum + (isNaN(comision) ? 0 : comision); // Si no es un número válido, sumar 0
       }, 0);
-
+  
     setTotalMonto(total);
     setIsModalOpen(true);
     setErrorMessage("");

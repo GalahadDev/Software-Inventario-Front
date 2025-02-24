@@ -155,7 +155,7 @@ const PedidosPage = () => {
 
     const pedidosFiltrados = filteredPedidos.filter((pedido) => {
       const pedidoFecha = new Date(pedido.FechaCreacion);
-      return pedidoFecha >= startOfDay && pedidoFecha <= endOfDay;
+      return pedido.Estado === "Entregado" && pedidoFecha >= startOfDay && pedidoFecha <= endOfDay;
     });
 
     pedidosFiltrados.forEach((pedido) => {

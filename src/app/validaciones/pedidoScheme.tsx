@@ -3,7 +3,7 @@ import { z } from "zod";
 export const pedidoScheme = z.object({
   nombre: z
     .string()
-    .max(20, "El nombre no puede tener más de 20 caracteres")
+    .max(20, "El nombre no puede tener más de 20 caracteres"),
   descripcion: z
     .string()
     .max(100, "La descripción no puede tener más de 100 caracteres"),

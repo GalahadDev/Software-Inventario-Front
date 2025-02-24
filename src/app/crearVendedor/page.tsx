@@ -115,7 +115,7 @@ const CrearVendedor = () => {
     const mensaje = `Hola, Soy parte del equipo administrativo de muebles King’s House. 
     Este es tu usuario para ingresar pedidos en nuestra plataforma: 
     Usuario: ${apiResponse.data.username} 
-    y este es el link de acceso a la plataforma ${encodeURIComponent("https://kings-bed-sm.onrender.com/login")}`;
+    y este es el link de acceso a la plataforma ${"https://kings-bed-sm.onrender.com/login"}`;
 
     const mensajeCodificado = encodeURIComponent(mensaje);
 

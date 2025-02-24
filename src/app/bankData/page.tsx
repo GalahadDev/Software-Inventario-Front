@@ -1,96 +1,60 @@
 "use client"
-import React, { useState } from 'react';
-import { updateBankData } from "../functions/bankUpdate"
-import { User } from '../types';
+import React, { useEffect, useState } from 'react';
+import { BankData } from 'app/ReusableComponents/BankData';
+import { Header } from 'app/ReusableComponents/Header';
+import { getCurrentUser } from 'app/functions/getUserBankInfo';
+import { MostrarInfoBank } from '../ReusableComponents/MostarInfoBank';
 
+function Page() {
+  const navigation = [
+    { name: "Ver Pedidos", href: "/vistapedidosvendedor" },
+    { name: "Informacion Bancaria", href: "/bankData" }
+  ];
 
-export function BankData() {
-  const [formData, setFormData] = useState<Partial<User>>({
-    Cedula: '',
-    Numero_Cuenta: '',
-    Tipo_Cuenta: '',
-    Nombre_Banco: '',
-    Email: ''
-  });
+  // Estado para almacenar los datos del usuario
+  const [userData, setUserData] = useState<any>(null);
+  // Estado para manejar el estado de carga
+  const [loading, setLoading] = useState(true);
+  // Estado para manejar errores
+  const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  // useEffect para obtener los datos del usuario cuando el componente se monte
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const data = await getCurrentUser("/users/me"); // Llamar a la función para obtener los datos
+        setUserData(data); // Actualizar el estado con los datos del usuario
+      } catch (error) {
+        setError("Error al obtener los datos del usuario"); // Manejar errores
+        console.error(error);
+      } finally {
+        setLoading(false); // Finalizar el estado de carga
+      }
+    };
 
-  
- 
+    fetchUserData(); // Llamar a la función
+  }, []); // El arreglo vacío asegura que el efecto se ejecute solo una vez
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-   
-    updateBankData(formData, "/users/bank-data"); 
+  // Mostrar un mensaje de carga mientras se obtienen los datos
+  if (loading) {
+    return <div>Cargando...</div>;
+  }
 
-    setFormData({
-        Cedula: '',
-        Numero_Cuenta: '',
-        Tipo_Cuenta: '',
-        Nombre_Banco: '',
-        
-    })
-    
-  };
+  // Mostrar un mensaje de error si algo falla
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
-    <div className="min-h-1 bg-gray-100 flex items-center justify-center p-4 mt-12">
-      <div className="bg-white rounded-lg shadow-md p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center text-black">Información Bancaria</h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="Cedula"
-            placeholder="Cédula/RUT"
-            value={formData.Cedula}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-          />
-
-          <input
-            type="text"
-            name="Numero_Cuenta"
-            placeholder="Número de cuenta"
-            value={formData.Numero_Cuenta}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-          />
-
-          <input
-            type="text"
-            name="Tipo_Cuenta"
-            placeholder="Tipo de cuenta"
-            value={formData.Tipo_Cuenta}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-          />
-
-          <input
-            type="text"
-            name="Nombre_Banco"
-            placeholder="Banco"
-            value={formData.Nombre_Banco}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-          />
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200 font-medium"
-          >
-            Guardar cambios
-          </button>
-        </form>
-
-        
-
+    <div>
+      <Header navigation={navigation} />
+      {/* Agregamos padding-top para compensar la altura del header y aseguramos que el contenido esté por debajo */}
+      <div className="flex flex-col items-center gap-0 pt-20">
+        <BankData />
+        <MostrarInfoBank bankInfo={userData} />
       </div>
     </div>
   );
 }
+
+export default Page;

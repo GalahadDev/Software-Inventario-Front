@@ -61,7 +61,7 @@ const PedidosPage = () => {
     { name: "Galeria", href: "/galeria" }
   ];
 
-  const handleCalculateTotal = () => {
+const handleCalculateTotal = () => {
   if (!startDate || !endDate) {
     setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
     setTimeout(() => setErrorMessage(""), 2000);
@@ -70,15 +70,16 @@ const PedidosPage = () => {
 
   // Ajustar las fechas para incluir todo el día
   const startOfDay = new Date(startDate);
-  startOfDay.setHours(0, 0, 0, 0); // Inicio del día (00:00:00.000)
+  startOfDay.setHours(0, 0, 0, 0);
 
   const endOfDay = new Date(endDate);
-  endOfDay.setHours(23, 59, 59, 999); // Fin del día (23:59:59.999)
+  endOfDay.setHours(23, 59, 59, 999);
 
   // Filtrar pedidos dentro del rango de fechas y que estén en estado "Entregado"
   const pedidosFiltrados = pedidosNoPagados.filter((pedido) => {
     const pedidoFecha = new Date(pedido.FechaCreacion);
-    return pedido.Estado === "Entregado" && pedidoFecha >= startOfDay && pedidoFecha <= endOfDay;
+    const estadoNormalizado = pedido.Estado?.trim().toLowerCase();
+    return estadoNormalizado === "entregado" && pedidoFecha >= startOfDay && pedidoFecha <= endOfDay;
   });
 
   // Calcular totales
@@ -88,21 +89,29 @@ const PedidosPage = () => {
   pedidosFiltrados.forEach((pedido) => {
     const comision =
       typeof pedido.Monto === "string"
-        ? parseFloat(pedido.Monto)
+        ? parseFloat(pedido.Monto.trim()) || 0
         : Number(pedido.Monto) || 0;
     totalComision += comision;
 
+    // Revisar y limpiar Comision_Sugerida antes de sumarla
     const comisionSugerida =
-      typeof pedido.Comision_Sugerida === "string"
-        ? parseFloat(pedido.Comision_Sugerida)
-        : Number(pedido.Comision_Sugerida) || 0;
+      pedido.Comision_Sugerida !== undefined && pedido.Comision_Sugerida !== null
+        ? typeof pedido.Comision_Sugerida === "string"
+          ? parseFloat(pedido.Comision_Sugerida.trim()) || 0
+          : Number(pedido.Comision_Sugerida) || 0
+        : 0;
+
     totalComisionSugerida += comisionSugerida;
   });
+
+  console.log("Total Comision:", totalComision);
+  console.log("Total Comision Sugerida:", totalComisionSugerida);
 
   setTotalMonto(totalComision);
   setTotalComisionSugerida(totalComisionSugerida);
   setIsModalOpen(true);
 };
+
 
 
   const filteredPedidos = useMemo(() => {

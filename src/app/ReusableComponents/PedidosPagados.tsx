@@ -54,38 +54,41 @@ export const PedidosPagados: React.FC<PedidosPagadosProps> = ({ pedidosPagados, 
     });
   }, [pedidosPagados, startDate, endDate, searchTerm]);
 
-  const calcularComisiones = () => {
-    if (!startDate || !endDate) {
-      setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TÉRMINO");
-      setTimeout(() => setErrorMessage(""), 2000);
-      return;
-    }
-    if (startDate > endDate) {
-      setErrorMessage("LA FECHA DE INICIO DEBE SER MENOR O IGUAL A LA FECHA DE TÉRMINO");
-      setTimeout(() => setErrorMessage(""), 2000);
-      return;
-    }
-  
-    const { totalComision, totalComisionSugerida } = filteredPedidos.reduce(
-      (totales, pedido) => {
-        totales.totalComision +=
-          typeof pedido.Monto === "string"
-            ? parseFloat(pedido.Monto)
-            : Number(pedido.Monto) || 0;
-        totales.totalComisionSugerida +=
-          typeof pedido.Comision_Sugerida === "string"
-            ? parseFloat(pedido.Comision_Sugerida)
-            : Number(pedido.Comision_Sugerida) || 0;
-        return totales;
-      },
-      { totalComision: 0, totalComisionSugerida: 0 }
-    );
-  
-    setTotalComision(totalComision);
-    setTotalComisionSugerida(totalComisionSugerida);
-    setIsModalOpen(true);
-    setErrorMessage("");
-  };
+ const calcularComisiones = () => {
+  if (!startDate || !endDate) {
+    setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TÉRMINO");
+    setTimeout(() => setErrorMessage(""), 2000);
+    return;
+  }
+  if (startDate > endDate) {
+    setErrorMessage("LA FECHA DE INICIO DEBE SER MENOR O IGUAL A LA FECHA DE TÉRMINO");
+    setTimeout(() => setErrorMessage(""), 2000);
+    return;
+  }
+
+  const pedidosEntregados = pedidosFiltrados.filter((pedido) => pedido.Estado === "Entregado");
+
+  const { totalComision, totalComisionSugerida } = pedidosEntregados.reduce(
+    (totales, pedido) => {
+      totales.totalComision +=
+        typeof pedido.Monto === "string"
+          ? parseFloat(pedido.Monto)
+          : Number(pedido.Monto) || 0;
+      totales.totalComisionSugerida +=
+        typeof pedido.Comision_Sugerida === "string"
+          ? parseFloat(pedido.Comision_Sugerida)
+          : Number(pedido.Comision_Sugerida) || 0;
+      return totales;
+    },
+    { totalComision: 0, totalComisionSugerida: 0 }
+  );
+
+  setTotalComision(totalComision);
+  setTotalComisionSugerida(totalComisionSugerida);
+  setIsModalOpen(true);
+  setErrorMessage("");
+};
+
 
   const getStatusColor = (estado: string | undefined): string => {
     const statusColors: Record<string, string> = {

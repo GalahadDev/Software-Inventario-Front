@@ -145,10 +145,10 @@ const PedidosPage = () => {
   };
 
   const handleSendToWhatsApp = (pedido: Pedido) => {
-    const mensaje = \nDescripción: ${pedido.Descripcion}\nObservaciones: ${pedido.Observaciones}\nImagen: ${pedido.Imagen};
+    const mensaje = `\nDescripción: ${pedido.Descripcion}\nObservaciones: ${pedido.Observaciones}\nImagen: ${pedido.Imagen}`;
     const mensajeCodificado = encodeURIComponent(mensaje);
     const grupoWhatsApp = "https://chat.whatsapp.com/Dxiz1ImYMJaCg9ibEN58ay";
-    window.open(https://api.whatsapp.com/send?text=${mensajeCodificado}&link=${grupoWhatsApp}, "_blank");
+    window.open(`https://api.whatsapp.com/send?text=${mensajeCodificado}&link=${grupoWhatsApp}`, "_blank");
   };
 
   const updateMonto = async (
@@ -170,7 +170,7 @@ const PedidosPage = () => {
       }
   
       // Actualizar los datos del pedido
-      await updateData(/pedidos/${id}, { monto, fletero, estado, atendido: Atendido, pagado });
+      await updateData(`/pedidos/${id}`, { monto, fletero, estado, atendido: Atendido, pagado });
   
       // Cerrar el modal después de la actualización
       setShowModal(false);
@@ -259,8 +259,8 @@ const PedidosPage = () => {
 
               return (
                 <div
-                  key={${pedido.ID}-${pedido.Nombre}}
-                  className={
+                  key={`${pedido.ID}-${pedido.Nombre}`}
+                  className={`
                   rounded-xl 
                   shadow-lg 
                   hover:shadow-xl 
@@ -271,13 +271,13 @@ const PedidosPage = () => {
                   transform 
                   origin-center 
                   ${pedido.Atendido ? 'bg-white' : 'bg-yellow-200 animate-pulse-scale'}
-                }
+                `}
                   onClick={() => handleCardClick(pedido)}
                 >
                   <div className="relative">
                     <img
                       src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
-                      alt={Pedido de ${pedido.Nombre}}
+                      alt={`Pedido de ${pedido.Nombre}`}
                       className="
                       w-full 
                       h-48 
@@ -285,7 +285,7 @@ const PedidosPage = () => {
                     "
                     />
                     <div
-                      className={
+                      className={`
                       absolute 
                       top-4 
                       right-4 
@@ -295,7 +295,7 @@ const PedidosPage = () => {
                       text-sm 
                       font-medium 
                       ${getStatusColor(pedido.Estado)}
-                    }
+                    `}
                     >
                       {pedido.Estado || "Sin estado"}
                     </div>

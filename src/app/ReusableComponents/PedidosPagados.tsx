@@ -3,92 +3,78 @@ import React, { useState, useMemo } from "react";
 import { Pedido } from "app/types";
 import { DollarSign, CreditCard, Truck, Package, MapPin, ClipboardList } from "lucide-react";
 import { ComisionModal } from "app/ReusableComponents/ModalTotalMonto";
-import { toChileDate } from "app/functions/dateUtils";
+import { toChileDate } from "app/functions/dateUtils"; // Asegúrate de que la ruta sea la correcta
 import { SearchDate } from "app/ReusableComponents/SearchDate";
 import { SearchBar } from "app/ReusableComponents/SearchBar";
 
 interface PedidosPagadosProps {
   pedidosPagados: Pedido[];
-  onBackToNoPagados: () => void; 
+  onBackToNoPagados: () => void;
 }
 
 export const PedidosPagados: React.FC<PedidosPagadosProps> = ({ pedidosPagados, onBackToNoPagados }) => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [searchTerm, setSearchTerm] = useState(""); // Nuevo estado para el buscador
+  const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [totalComision, setTotalComision] = useState(0);
   const [totalComisionSugerida, setTotalComisionSugerida] = useState(0);
 
-  // Función para formatear la fecha a Chile
+  // Función auxiliar para formatear la fecha a horario de Chile
   const formatDate = (fecha: string | Date): string => {
     return toChileDate(new Date(fecha)).toLocaleDateString("es-ES");
   };
 
-  // Filtrar pedidos: incluye la lógica de fechas y búsqueda
+  // Filtrar y ordenar los pedidos usando toChileDate
   const filteredPedidos = useMemo(() => {
     if (!pedidosPagados) return [];
-  
     const sortedPedidos = [...pedidosPagados].sort((a, b) =>
-      toChileDate(new Date(b.FechaCreacion)).getTime() - toChileDate(new Date(a.FechaCreacion)).getTime()
+      toChileDate(new Date(b.FechaCreacion)).getTime() -
+      toChileDate(new Date(a.FechaCreacion)).getTime()
     );
-  
     return sortedPedidos.filter((pedido) => {
       const fechaPedido = toChileDate(new Date(pedido.FechaCreacion));
       if (isNaN(fechaPedido.getTime())) return false;
-  
-      // Si no se han seleccionado ambas fechas, se muestran todos
-      const fechaInicio = startDate ? toChileDate(new Date(startDate)) : null;
-      const fechaFin = endDate ? toChileDate(new Date(endDate)) : null;
-      const inRange = fechaInicio && fechaFin ? (fechaPedido >= fechaInicio && fechaPedido <= fechaFin) : true;
-  
-      // Filtrar por búsqueda: se revisan todas las propiedades del pedido
-      const matchesSearch = searchTerm
-        ? Object.values(pedido)
-            .filter((value) => value !== null && value !== undefined)
-            .some((value) => value.toString().toLowerCase().includes(searchTerm.toLowerCase()))
-        : true;
-  
-      return inRange && matchesSearch;
+      // Si no se han seleccionado ambas fechas, se muestran todos los pedidos
+      if (!startDate || !endDate) return true;
+      // Convertir las fechas seleccionadas a horario de Chile
+      const fechaInicio = toChileDate(new Date(startDate));
+      const fechaFin = toChileDate(new Date(endDate));
+      return fechaPedido >= fechaInicio && fechaPedido <= fechaFin;
     });
   }, [pedidosPagados, startDate, endDate, searchTerm]);
 
- const calcularComisiones = () => {
-  if (!startDate || !endDate) {
-    setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TÉRMINO");
-    setTimeout(() => setErrorMessage(""), 2000);
-    return;
-  }
-  if (startDate > endDate) {
-    setErrorMessage("LA FECHA DE INICIO DEBE SER MENOR O IGUAL A LA FECHA DE TÉRMINO");
-    setTimeout(() => setErrorMessage(""), 2000);
-    return;
-  }
-
-  const pedidosEntregados = pedidosFiltrados.filter((pedido) => pedido.Estado === "Entregado");
-
-  const { totalComision, totalComisionSugerida } = pedidosEntregados.reduce(
-    (totales, pedido) => {
-      totales.totalComision +=
-        typeof pedido.Monto === "string"
-          ? parseFloat(pedido.Monto)
-          : Number(pedido.Monto) || 0;
-      totales.totalComisionSugerida +=
-        typeof pedido.Comision_Sugerida === "string"
-          ? parseFloat(pedido.Comision_Sugerida)
-          : Number(pedido.Comision_Sugerida) || 0;
-      return totales;
-    },
-    { totalComision: 0, totalComisionSugerida: 0 }
-  );
-
-  setTotalComision(totalComision);
-  setTotalComisionSugerida(totalComisionSugerida);
-  setIsModalOpen(true);
-  setErrorMessage("");
-};
-
+  const calcularComisiones = () => {
+    if (!startDate || !endDate) {
+      setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TÉRMINO");
+      setTimeout(() => setErrorMessage(""), 2000);
+      return;
+    }
+    if (startDate > endDate) {
+      setErrorMessage("LA FECHA DE INICIO DEBE SER MENOR O IGUAL A LA FECHA DE TÉRMINO");
+      setTimeout(() => setErrorMessage(""), 2000);
+      return;
+    }
+    const { totalComision, totalComisionSugerida } = filteredPedidos.reduce(
+      (totales, pedido) => {
+        totales.totalComision +=
+          typeof pedido.Monto === "string"
+            ? parseFloat(pedido.Monto)
+            : Number(pedido.Monto) || 0;
+        totales.totalComisionSugerida +=
+          typeof pedido.Comision_Sugerida === "string"
+            ? parseFloat(pedido.Comision_Sugerida)
+            : Number(pedido.Comision_Sugerida) || 0;
+        return totales;
+      },
+      { totalComision: 0, totalComisionSugerida: 0 }
+    );
+    setTotalComision(totalComision);
+    setTotalComisionSugerida(totalComisionSugerida);
+    setIsModalOpen(true);
+    setErrorMessage("");
+  };
 
   const getStatusColor = (estado: string | undefined): string => {
     const statusColors: Record<string, string> = {
@@ -115,7 +101,7 @@ export const PedidosPagados: React.FC<PedidosPagadosProps> = ({ pedidosPagados, 
         </button>
       </div>
 
-      {/* Controles de filtrado: fechas y búsqueda */}
+      {/* Controles de filtrado: Selección de fechas y búsqueda */}
       <div className="mb-8 flex flex-col items-center gap-4">
         <SearchDate
           startDate={startDate}

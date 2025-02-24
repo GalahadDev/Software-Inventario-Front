@@ -3,45 +3,54 @@ import React, { useState, useMemo } from "react";
 import { Pedido } from "app/types";
 import { DollarSign, CreditCard, Truck, Package, MapPin, ClipboardList } from "lucide-react";
 import { ComisionModal } from "app/ReusableComponents/ModalTotalMonto";
-import { toChileDate } from "app/functions/dateUtils"; // Asegúrate de que la ruta sea la correcta
+import { toChileDate } from "app/functions/dateUtils";
 import { SearchDate } from "app/ReusableComponents/SearchDate";
 import { SearchBar } from "app/ReusableComponents/SearchBar";
 
 interface PedidosPagadosProps {
   pedidosPagados: Pedido[];
-  onBackToNoPagados: () => void;
+  onBackToNoPagados: () => void; 
 }
 
 export const PedidosPagados: React.FC<PedidosPagadosProps> = ({ pedidosPagados, onBackToNoPagados }) => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // Nuevo estado para el buscador
   const [errorMessage, setErrorMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [totalComision, setTotalComision] = useState(0);
   const [totalComisionSugerida, setTotalComisionSugerida] = useState(0);
 
-  // Función auxiliar para formatear la fecha a horario de Chile
+  // Función para formatear la fecha a Chile
   const formatDate = (fecha: string | Date): string => {
     return toChileDate(new Date(fecha)).toLocaleDateString("es-ES");
   };
 
-  // Filtrar y ordenar los pedidos usando toChileDate
+  // Filtrar pedidos: incluye la lógica de fechas y búsqueda
   const filteredPedidos = useMemo(() => {
     if (!pedidosPagados) return [];
+  
     const sortedPedidos = [...pedidosPagados].sort((a, b) =>
-      toChileDate(new Date(b.FechaCreacion)).getTime() -
-      toChileDate(new Date(a.FechaCreacion)).getTime()
+      toChileDate(new Date(b.FechaCreacion)).getTime() - toChileDate(new Date(a.FechaCreacion)).getTime()
     );
+  
     return sortedPedidos.filter((pedido) => {
       const fechaPedido = toChileDate(new Date(pedido.FechaCreacion));
       if (isNaN(fechaPedido.getTime())) return false;
-      // Si no se han seleccionado ambas fechas, se muestran todos los pedidos
-      if (!startDate || !endDate) return true;
-      // Convertir las fechas seleccionadas a horario de Chile
-      const fechaInicio = toChileDate(new Date(startDate));
-      const fechaFin = toChileDate(new Date(endDate));
-      return fechaPedido >= fechaInicio && fechaPedido <= fechaFin;
+  
+      // Si no se han seleccionado ambas fechas, se muestran todos
+      const fechaInicio = startDate ? toChileDate(new Date(startDate)) : null;
+      const fechaFin = endDate ? toChileDate(new Date(endDate)) : null;
+      const inRange = fechaInicio && fechaFin ? (fechaPedido >= fechaInicio && fechaPedido <= fechaFin) : true;
+  
+      // Filtrar por búsqueda: se revisan todas las propiedades del pedido
+      const matchesSearch = searchTerm
+        ? Object.values(pedido)
+            .filter((value) => value !== null && value !== undefined)
+            .some((value) => value.toString().toLowerCase().includes(searchTerm.toLowerCase()))
+        : true;
+  
+      return inRange && matchesSearch;
     });
   }, [pedidosPagados, startDate, endDate, searchTerm]);
 
@@ -56,6 +65,7 @@ export const PedidosPagados: React.FC<PedidosPagadosProps> = ({ pedidosPagados, 
       setTimeout(() => setErrorMessage(""), 2000);
       return;
     }
+  
     const { totalComision, totalComisionSugerida } = filteredPedidos.reduce(
       (totales, pedido) => {
         totales.totalComision +=
@@ -70,6 +80,7 @@ export const PedidosPagados: React.FC<PedidosPagadosProps> = ({ pedidosPagados, 
       },
       { totalComision: 0, totalComisionSugerida: 0 }
     );
+  
     setTotalComision(totalComision);
     setTotalComisionSugerida(totalComisionSugerida);
     setIsModalOpen(true);
@@ -101,7 +112,7 @@ export const PedidosPagados: React.FC<PedidosPagadosProps> = ({ pedidosPagados, 
         </button>
       </div>
 
-      {/* Controles de filtrado: Selección de fechas y búsqueda */}
+      {/* Controles de filtrado: fechas y búsqueda */}
       <div className="mb-8 flex flex-col items-center gap-4">
         <SearchDate
           startDate={startDate}
@@ -185,6 +196,9 @@ export const PedidosPagados: React.FC<PedidosPagadosProps> = ({ pedidosPagados, 
                   <div className="flex items-center">
                     <Truck className="w-5 h-5 mr-2 text-gray-500" />
                     <span className="text-gray-600">Despacho: {pedido.Fletero || "Sin Asignar"}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-sm text-gray-500">Comisión: ${pedido.Monto || "0"}</span>
                   </div>
                   <div className="flex items-center">
                     <span className="text-sm text-gray-500">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</span>

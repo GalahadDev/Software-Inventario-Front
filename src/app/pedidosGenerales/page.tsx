@@ -62,47 +62,48 @@ const PedidosPage = () => {
   ];
 
   const handleCalculateTotal = () => {
-    if (!startDate || !endDate) {
-      setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
-      setTimeout(() => setErrorMessage(""), 2000);
-      return;
-    }
-  
-    // Ajustar las fechas para incluir todo el día
-    const startOfDay = new Date(startDate);
-    startOfDay.setHours(0, 0, 0, 0); // Inicio del día (00:00:00.000)
-  
-    const endOfDay = new Date(endDate);
-    endOfDay.setHours(23, 59, 59, 999); // Fin del día (23:59:59.999)
-  
-    // Filtrar pedidos dentro del rango de fechas
-    const pedidosFiltrados = pedidosNoPagados.filter((pedido) => {
-      const pedidoFecha = new Date(pedido.FechaCreacion);
-      return pedidoFecha >= startOfDay && pedidoFecha <= endOfDay;
-    });
-  
-    // Calcular totales
-    let totalComision = 0;
-    let totalComisionSugerida = 0;
-  
-    pedidosFiltrados.forEach((pedido) => {
-      const comision =
-        typeof pedido.Monto === "string"
-          ? parseFloat(pedido.Monto)
-          : Number(pedido.Monto) || 0;
-      totalComision += comision;
-  
-      const comisionSugerida =
-        typeof pedido.Comision_Sugerida === "string"
-          ? parseFloat(pedido.Comision_Sugerida)
-          : Number(pedido.Comision_Sugerida) || 0;
-      totalComisionSugerida += comisionSugerida;
-    });
-  
-    setTotalMonto(totalComision);
-    setTotalComisionSugerida(totalComisionSugerida);
-    setIsModalOpen(true);
-  };
+  if (!startDate || !endDate) {
+    setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
+    setTimeout(() => setErrorMessage(""), 2000);
+    return;
+  }
+
+  // Ajustar las fechas para incluir todo el día
+  const startOfDay = new Date(startDate);
+  startOfDay.setHours(0, 0, 0, 0); // Inicio del día (00:00:00.000)
+
+  const endOfDay = new Date(endDate);
+  endOfDay.setHours(23, 59, 59, 999); // Fin del día (23:59:59.999)
+
+  // Filtrar pedidos dentro del rango de fechas y que estén en estado "Entregado"
+  const pedidosFiltrados = pedidosNoPagados.filter((pedido) => {
+    const pedidoFecha = new Date(pedido.FechaCreacion);
+    return pedido.Estado === "Entregado" && pedidoFecha >= startOfDay && pedidoFecha <= endOfDay;
+  });
+
+  // Calcular totales
+  let totalComision = 0;
+  let totalComisionSugerida = 0;
+
+  pedidosFiltrados.forEach((pedido) => {
+    const comision =
+      typeof pedido.Monto === "string"
+        ? parseFloat(pedido.Monto)
+        : Number(pedido.Monto) || 0;
+    totalComision += comision;
+
+    const comisionSugerida =
+      typeof pedido.Comision_Sugerida === "string"
+        ? parseFloat(pedido.Comision_Sugerida)
+        : Number(pedido.Comision_Sugerida) || 0;
+    totalComisionSugerida += comisionSugerida;
+  });
+
+  setTotalMonto(totalComision);
+  setTotalComisionSugerida(totalComisionSugerida);
+  setIsModalOpen(true);
+};
+
 
   const filteredPedidos = useMemo(() => {
     if (!pedidosNoPagados) return [];

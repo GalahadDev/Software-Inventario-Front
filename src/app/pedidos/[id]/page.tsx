@@ -10,7 +10,7 @@ import { Header } from "app/ReusableComponents/Header";
 import { ComisionModal } from "app/ReusableComponents/ModalTotalMonto";
 import { usePedidosContext } from "app/Context/PedidosContext";
 import { useWebSocket } from "app/Context/WebSocketContext";
-import { SearchBar } from "app/ReusableComponents/SearchBar";
+import { SearchBar } from "app/ReusableComponents/SearchBar"; // <-- Asegúrate de importar SearchBar
 import { usePedidoActions } from "app/functions/useUpdateData";
 import { PedidosPagados } from "app/ReusableComponents/PedidosPagados";
 import { toChileDate } from "app/functions/dateUtils"; // Importar toChileDate
@@ -23,7 +23,7 @@ const PedidosPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [totalMonto, setTotalMonto] = useState(0);
   const [totalComisionSugerida, setTotalComisionSugerida] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // NUEVO: estado para el término de búsqueda
   const [localPedidos, setLocalPedidos] = useState<Pedido[]>([]);
   const [pedidosNoPagados, setPedidosNoPagados] = useState<Pedido[]>([]);
   const [pedidosPagados, setPedidosPagados] = useState<Pedido[]>([]);
@@ -38,15 +38,13 @@ const PedidosPage = () => {
   const params = useParams<{ id: string }>();
   const vendedorId = params?.id;
 
-  // Separar pedidos en pagados y no pagados
+  // Separar pedidos del vendedor en pagados y no pagados
   useEffect(() => {
     if (pedidos && vendedorId) {
       const pedidosDelVendedor = pedidos.filter((pedido) => pedido.UsuarioID === vendedorId);
       setLocalPedidos(pedidosDelVendedor);
-
       const noPagados = pedidosDelVendedor.filter((pedido) => pedido.Pagado === "No Pagado");
       setPedidosNoPagados(noPagados);
-
       const pagados = pedidosDelVendedor.filter((pedido) => pedido.Pagado === "Pagado");
       setPedidosPagados(pagados);
     }
@@ -59,15 +57,13 @@ const PedidosPage = () => {
     }
   }, [newOrder, pedidos, setPedidosList]);
 
-  // Lógica de filtrado y ordenamiento
+  // Lógica de filtrado y ordenamiento (incluye búsqueda)
   const filteredPedidos = useMemo(() => {
     if (!pedidosNoPagados) return [];
-
     // Ordenar los pedidos por fecha de creación (más reciente primero)
     const sortedPedidos = [...pedidosNoPagados].sort((a, b) =>
       toChileDate(new Date(b.FechaCreacion)).getTime() - toChileDate(new Date(a.FechaCreacion)).getTime()
     );
-
     return sortedPedidos.filter((pedido) => {
       const fechaCreacionChile = toChileDate(new Date(pedido.FechaCreacion));
       if (isNaN(fechaCreacionChile.getTime())) return false;
@@ -80,6 +76,7 @@ const PedidosPage = () => {
         ? (fechaCreacionChile >= fechaInicioChile && fechaCreacionChile <= fechaTerminoChile)
         : true;
 
+      // NUEVO: Filtrar por término de búsqueda en todas las propiedades del pedido
       const matchesSearch = searchTerm
         ? Object.values(pedido)
             .some(value => value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()))
@@ -152,17 +149,13 @@ const PedidosPage = () => {
 
     // Ajustar las fechas para incluir todo el día
     const startOfDay = new Date(startDate);
-    startOfDay.setHours(0, 0, 0, 0); // Inicio del día (00:00:00)
-
+    startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(endDate);
-    endOfDay.setHours(23, 59, 59, 999); // Fin del día (23:59:59.999)
+    endOfDay.setHours(23, 59, 59, 999);
 
     const pedidosFiltrados = filteredPedidos.filter((pedido) => {
       const pedidoFecha = new Date(pedido.FechaCreacion);
-      return (
-        pedidoFecha >= startOfDay &&
-        pedidoFecha <= endOfDay
-      );
+      return pedidoFecha >= startOfDay && pedidoFecha <= endOfDay;
     });
 
     pedidosFiltrados.forEach((pedido) => {
@@ -184,7 +177,6 @@ const PedidosPage = () => {
     setIsModalOpen(true);
   };
 
-  // Mostrar mensaje de carga o error
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -209,6 +201,10 @@ const PedidosPage = () => {
     );
   }
 
+  // Función auxiliar para formatear la fecha a formato "es-ES"
+  const formattedDate = (date: string | Date) =>
+    toChileDate(new Date(date)).toLocaleDateString("es-ES");
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <header className="w-full fixed top-0 left-0 bg-white shadow-lg z-10">
@@ -223,23 +219,18 @@ const PedidosPage = () => {
           ]}
         />
       </header>
-
       <main className="flex-grow mt-[80px] px-4 py-8 container mx-auto">
-        {/* Botón para alternar entre Pedidos Pagados y No Pagados */}
-      
-
-        {/* Renderizado condicional */}
+        {/* Renderizado condicional para mostrar PedidosPagados o Pedidos No Pagados */}
         {showPagados ? (
           <PedidosPagados
             pedidosPagados={pedidosPagados}
-            onBackToNoPagados={() => setShowPagados(false)} // Callback para volver a PedidosPage
+            onBackToNoPagados={() => setShowPagados(false)}
           />
         ) : (
           <>
             <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">
               Pedidos No Pagados
             </h1>
-
             <div className="mb-8">
               <SearchDate
                 startDate={startDate}
@@ -247,28 +238,21 @@ const PedidosPage = () => {
                 onStartDateChange={setStartDate}
                 onEndDateChange={setEndDate}
               />
-              <div>
-                <div className="mt-6 mb-6 flex gap-4">
-                  <button
-                    onClick={handleCalculateTotal}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-                  >
-                    Calcular Total de Montos
-                  </button>
-
-                  
-                </div>
-                {!showPagados && (
-          <button
-            onClick={() => setShowPagados(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors mb-8"
-          >
-            Ver Pedidos Pagados
-          </button>
-        )}
-
+              <div className="mt-6 mb-6 flex flex-col gap-4 items-center">
+                <button
+                  onClick={handleCalculateTotal}
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  Calcular Total de Montos
+                </button>
+                <button
+                  onClick={() => setShowPagados(true)}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  Ver Pedidos Pagados
+                </button>
+                {/* NUEVO: Componente para búsqueda */}
                 <SearchBar onSearch={setSearchTerm} placeholder="Buscar..." />
-
                 {isModalOpen && (
                   <ComisionModal
                     isOpen={isModalOpen}
@@ -279,8 +263,8 @@ const PedidosPage = () => {
                     endDate={endDate}
                     pedidosFiltrados={pedidosNoPagados.filter((pedido) => {
                       const pedidoFecha = new Date(pedido.FechaCreacion);
-                      const fechaInicioObj = new Date(startDate!); // Usamos "!" para asegurar que no es null
-                      const fechaTerminoObj = new Date(endDate!); // Usamos "!" para asegurar que no es null
+                      const fechaInicioObj = new Date(startDate!);
+                      const fechaTerminoObj = new Date(endDate!);
                       return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
                     }).length}
                     pedidosEntregados={pedidosNoPagados.filter(
@@ -290,11 +274,9 @@ const PedidosPage = () => {
                 )}
               </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto max-h-[80vh] pr-3">
-              {pedidosNoPagados.map((pedido) => {
-                const fecha = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES");
-
+              {filteredPedidos.map((pedido) => {
+                const fecha = formattedDate(pedido.FechaCreacion);
                 return (
                   <div
                     key={`${pedido.ID}-${pedido.Nombre}`}
@@ -320,21 +302,12 @@ const PedidosPage = () => {
                       />
                       <div
                         className={`
-                          absolute 
-                          top-4 
-                          right-4 
-                          px-3 
-                          py-1 
-                          rounded-full 
-                          text-sm 
-                          font-medium 
-                          ${getStatusColor(pedido.Estado)}
+                          absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(pedido.Estado)}
                         `}
                       >
                         {pedido.Estado || "Sin estado"}
                       </div>
                     </div>
-
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <h2 className="text-xl font-semibold text-gray-800">
@@ -345,44 +318,37 @@ const PedidosPage = () => {
                           {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
                         </span>
                       </div>
-
                       <div className="space-y-3">
                         <div className="flex items-start">
                           <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
                           <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
                         </div>
-
                         {pedido.Tela && (
                           <div className="flex items-center">
                             <MapPin className="w-5 h-5 mr-3 text-gray-500" />
                             <p className="text-gray-600">Tela: {pedido.Tela}</p>
                           </div>
                         )}
-
                         {pedido.Color && (
                           <div className="flex items-center">
                             <MapPin className="w-5 h-5 mr-3 text-gray-500" />
                             <p className="text-gray-600">Color: {pedido.Color}</p>
                           </div>
                         )}
-
                         <div className="flex items-center">
                           <MapPin className="w-5 h-5 mr-3 text-gray-500" />
                           <p className="text-gray-600">Direccion: {pedido.Direccion}</p>
                         </div>
-
                         <div className="flex items-center">
                           <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
                           <p className="text-gray-600">Forma de pago: {pedido.Forma_Pago}</p>
                         </div>
-
                         {pedido.Observaciones && (
                           <div className="flex items-start">
                             <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
                             <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
                           </div>
                         )}
-
                         <div className="flex flex-col space-y-2 pt-3 border-t border-gray-100">
                           <div className="flex items-center">
                             <Truck className="w-5 h-5 mr-2 text-gray-500" />
@@ -395,19 +361,16 @@ const PedidosPage = () => {
                             <span className="text-sm text-gray-500">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</span>
                           </div>
                         </div>
-
                         <div className="flex items-center">
                           <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
                           <p className="text-gray-600">Estado de pago: {pedido.Pagado ? "Pagado" : "Pendiente"}</p>
                         </div>
-
                         <div className="flex items-center">
                           <MapPin className="w-5 h-5 mr-3 text-gray-500" />
                           <p className="text-gray-600">{fecha}</p>
                         </div>
                       </div>
                     </div>
-
                     <div className="mt-4">
                       <button
                         onClick={(e) => {
@@ -425,7 +388,6 @@ const PedidosPage = () => {
             </div>
           </>
         )}
-
         {showModal && selectedPedido && (
           <Modal
             pedido={selectedPedido}

@@ -25,7 +25,7 @@ export function BankData() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Datos del formulario:', formData);
+   
     updateBankData(formData, "/users/bank-data"); 
 
     setFormData({
@@ -33,7 +33,7 @@ export function BankData() {
         Numero_Cuenta: '',
         Tipo_Cuenta: '',
         Nombre_Banco: '',
-        Email: ''
+        
     })
     
   };
@@ -46,7 +46,7 @@ export function BankData() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            name="cedula"
+            name="Cedula"
             placeholder="Cédula/RUT"
             value={formData.Cedula}
             onChange={handleChange}
@@ -55,7 +55,7 @@ export function BankData() {
 
           <input
             type="text"
-            name="numero_cuenta"
+            name="Numero_Cuenta"
             placeholder="Número de cuenta"
             value={formData.Numero_Cuenta}
             onChange={handleChange}
@@ -64,7 +64,7 @@ export function BankData() {
 
           <input
             type="text"
-            name="tipo_cuenta"
+            name="Tipo_Cuenta"
             placeholder="Tipo de cuenta"
             value={formData.Tipo_Cuenta}
             onChange={handleChange}
@@ -73,18 +73,9 @@ export function BankData() {
 
           <input
             type="text"
-            name="nombre_banco"
+            name="Nombre_Banco"
             placeholder="Banco"
             value={formData.Nombre_Banco}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-          />
-
-          <input
-            type="email"
-            name="email"
-            placeholder="Correo electrónico"
-            value={formData.Email}
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
           />

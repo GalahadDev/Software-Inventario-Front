@@ -33,7 +33,7 @@ export function BankData() {
         Numero_Cuenta: '',
         Tipo_Cuenta: '',
         Nombre_Banco: '',
-        Email: ''
+        
     })
     
   };
@@ -76,15 +76,6 @@ export function BankData() {
             name="Nombre_Banco"
             placeholder="Banco"
             value={formData.Nombre_Banco}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-          />
-
-          <input
-            type="email"
-            name="Email"
-            placeholder="Correo electrónico"
-            value={formData.Email}
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
           />

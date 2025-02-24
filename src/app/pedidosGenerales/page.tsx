@@ -162,10 +162,10 @@ const handleCalculateTotal = () => {
   };
 
   const handleSendToWhatsApp = (pedido: Pedido) => {
-    const mensaje = `{pedido.ID}\nDescripción: ${pedido.Descripcion}\nObservaciones: ${pedido.Observaciones}\n{pedido.Tela}\n{pedido.Color}\nImagen: ${pedido.Imagen} `;
+    const mensaje = `Nro de Pedido: ${pedido.ID}\nDescripción: ${pedido.Descripcion}\nObservaciones: ${pedido.Observaciones}\nTipo de Tela: ${pedido.Tela}\nColor: ${pedido.Color}\nImagen: ${pedido.Imagen} `;
     const mensajeCodificado = encodeURIComponent(mensaje);
     const grupoWhatsApp = "https://chat.whatsapp.com/Dxiz1ImYMJaCg9ibEN58ay";
-    window.open(`https://api.whatsapp.com/send?text=${mensajeCodificado}&link=${grupoWhatsApp}`, "_blank");
+    window.open(`whatsapp://send?text=${mensajeCodificado`, "_blank");
   };
 
   const updateMonto = async (

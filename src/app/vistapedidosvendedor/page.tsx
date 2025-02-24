@@ -206,7 +206,7 @@ const VistaPedidosVendedor = () => {
                     </h2>
                     <span className="flex items-center text-green-600 font-semibold">
                       <DollarSign className="w-5 h-5 mr-1" />
-                      {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
+                      {pedido.Precio}
                     </span>
                   </div>
 
@@ -270,6 +270,13 @@ const VistaPedidosVendedor = () => {
                       <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
                       <p className="text-gray-600">Estado de pago: {pedido.Pagado ? "Pagado" : "Pendiente"}</p>
                     </div>
+
+
+<div className="flex items-center">
+                      <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+                      <p className="text-gray-600">SubVendedor: {pedido.Sub_Vendedor}</p>
+                    </div>
+                    
 
                     {/* Fecha */}
                     <div className="flex items-center">

@@ -18,7 +18,7 @@ export interface Pedido {
     Nombre_Vendedor: string,
     Tela:String,
     Color:string,
-    sub_Vendedor:string
+    Sub_Vendedor:string
     Comision_Sugerida: string
 
   }

@@ -92,11 +92,12 @@ const handleCalculateTotal = () => {
         : Number(pedido.Monto) || 0;
     totalComision += comision;
 
-    const comisionSugerida =
-      typeof pedido.Comision_Sugerida === "string"
-        ? parseFloat(pedido.Comision_Sugerida)
-        : Number(pedido.Comision_Sugerida) || 0;
-    totalComisionSugerida += comisionSugerida;
+  const comisionSugerida =
+      pedido.Comision_Sugerida !== undefined && pedido.Comision_Sugerida !== null
+        ? typeof pedido.Comision_Sugerida === "string"
+          ? parseFloat(pedido.Comision_Sugerida.trim()) || 0
+          : Number(pedido.Comision_Sugerida) || 0
+        : 0;
   });
 
   setTotalMonto(totalComision);

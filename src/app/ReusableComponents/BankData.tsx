@@ -46,7 +46,7 @@ export function BankData() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            name="cedula"
+            name="Cedula"
             placeholder="Cédula/RUT"
             value={formData.Cedula}
             onChange={handleChange}
@@ -55,7 +55,7 @@ export function BankData() {
 
           <input
             type="text"
-            name="numero_cuenta"
+            name="Numero_Cuenta"
             placeholder="Número de cuenta"
             value={formData.Numero_Cuenta}
             onChange={handleChange}
@@ -64,7 +64,7 @@ export function BankData() {
 
           <input
             type="text"
-            name="tipo_cuenta"
+            name="Tipo_Cuenta"
             placeholder="Tipo de cuenta"
             value={formData.Tipo_Cuenta}
             onChange={handleChange}
@@ -73,7 +73,7 @@ export function BankData() {
 
           <input
             type="text"
-            name="nombre_banco"
+            name="Nombre_Banco"
             placeholder="Banco"
             value={formData.Nombre_Banco}
             onChange={handleChange}
@@ -82,7 +82,7 @@ export function BankData() {
 
           <input
             type="email"
-            name="email"
+            name="Email"
             placeholder="Correo electrónico"
             value={formData.Email}
             onChange={handleChange}

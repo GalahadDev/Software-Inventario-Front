@@ -158,7 +158,7 @@ export const PedidosPagados: React.FC<PedidosPagadosProps> = ({ pedidosPagados, 
                 </h2>
                 <span className="flex items-center text-green-600 font-semibold">
                   <DollarSign className="w-5 h-5 mr-1" />
-                  {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
+                  {pedido.Precio}
                 </span>
               </div>
               <div className="space-y-3">

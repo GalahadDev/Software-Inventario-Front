@@ -14,7 +14,6 @@ export const administradorSchema = z.object({
     .string()
     .min(8, { message: "La contraseña debe tener al menos 8 caracteres" })
     .max(20, { message: "La contraseña no puede exceder los 20 caracteres" })
-    .regex(/[A-Z]/, { message: "La contraseña debe contener al menos una letra mayúscula" })
     .regex(/[a-z]/, { message: "La contraseña debe contener al menos una letra minúscula" })
     .regex(/[0-9]/, { message: "La contraseña debe contener al menos un número" })
     .nonempty({ message: "La contraseña es requerida" }),

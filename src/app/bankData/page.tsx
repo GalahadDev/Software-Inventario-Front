@@ -1,81 +1,77 @@
 "use client"
-import React, { useEffect, useState } from 'react';
-import { BankData } from 'app/ReusableComponents/BankData';
-import { Header } from 'app/ReusableComponents/Header';
-import { getCurrentUser } from 'app/functions/getUserBankInfo';
-import { MostrarInfoBank } from 'app/ReusableComponents/MostarInfoBank';
-import { SuccessModal } from 'app/ReusableComponents/Exito';
+import React, { useState } from "react";
 
-function Page() {
-  const navigation = [
-    { name: "Ver Pedidos", href: "/vistapedidosvendedor" },
-    { name: "Informacion Bancaria", href: "/bankData" },
-  ];
+// Definimos una interface para especificar que
+// el componente puede recibir la prop onSuccess
+interface BankDataProps {
+  onSuccess?: () => void;
+}
 
-  // Estado para almacenar los datos del usuario
-  const [userData, setUserData] = useState<any>(null);
-  // Estado para manejar el estado de carga
-  const [loading, setLoading] = useState(true);
-  // Estado para manejar errores
-  const [error, setError] = useState<string | null>(null);
+export function BankData({ onSuccess }: BankDataProps) {
+  const [bank, setBank] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  // Agrega más estados si lo requieres
 
-  // Estado para manejar la visibilidad del modal de éxito
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // Función que maneja la lógica de actualización
+  const handleUpdateBankData = async () => {
+    try {
+      // Ejemplo de lógica de actualización, p.ej. una llamada a la API
+      // const response = await fetch("/api/updateBankInfo", {
+      //   method: "POST",
+      //   body: JSON.stringify({ bank, accountNumber }),
+      //   ...
+      // });
+      // if (response.ok) {
+      //   // Si fue exitoso, llama a onSuccess
+      //   onSuccess?.();
+      // }
 
-  // useEffect para obtener los datos del usuario cuando el componente se monte
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const data = await getCurrentUser("/users/me"); // Llamar a la función para obtener los datos
-        setUserData(data); // Actualizar el estado con los datos del usuario
-      } catch (error) {
-        setError("Error al obtener los datos del usuario"); // Manejar errores
-        console.error(error);
-      } finally {
-        setLoading(false); // Finalizar el estado de carga
-      }
-    };
-
-    fetchUserData(); // Llamar a la función
-  }, []);
-
-  // Mostrar un mensaje de carga mientras se obtienen los datos
-  if (loading) {
-    return <div>Cargando...</div>;
-  }
-
-  // Mostrar un mensaje de error si algo falla
-  if (error) {
-    return <div>{error}</div>;
-  }
-
-  // Función que se llamará cuando la actualización bancaria sea exitosa
-  const handleSuccess = () => {
-    setShowSuccessModal(true);
+      // Por ahora asumimos que todo sale bien y llamamos directamente:
+      onSuccess?.();
+    } catch (error) {
+      console.error("Error al actualizar la información bancaria:", error);
+      // Manejo de errores
+    }
   };
 
+  // Render del formulario
   return (
-    <div>
-      <Header navigation={navigation} />
-      <div className="flex flex-col items-center gap-0 pt-20">
-        {/* 
-          Pasamos la función handleSuccess como prop al componente BankData.
-          Cuando se actualice correctamente la información bancaria,
-          BankData llamará a esta función.
-        */}
-        <BankData onSuccess={handleSuccess} />
+    <div className="p-4 border rounded">
+      <h2 className="text-xl mb-4">Actualizar Información Bancaria</h2>
 
-        <MostrarInfoBank bankInfo={userData} />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleUpdateBankData();
+        }}
+      >
+        <div className="mb-4">
+          <label className="block font-medium">Banco:</label>
+          <input
+            type="text"
+            value={bank}
+            onChange={(e) => setBank(e.target.value)}
+            className="border p-2 w-full"
+          />
+        </div>
 
-        {/* Modal de Éxito controlado por el estado showSuccessModal */}
-        <SuccessModal
-          isOpen={showSuccessModal}
-          onClose={() => setShowSuccessModal(false)}
-          message="¡Información bancaria actualizada exitosamente!"
-        />
-      </div>
+        <div className="mb-4">
+          <label className="block font-medium">Número de cuenta:</label>
+          <input
+            type="text"
+            value={accountNumber}
+            onChange={(e) => setAccountNumber(e.target.value)}
+            className="border p-2 w-full"
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Guardar
+        </button>
+      </form>
     </div>
   );
 }
-
-export default Page;

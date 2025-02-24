@@ -13,8 +13,6 @@ import { useWebSocket } from "app/Context/WebSocketContext";
 import { SearchBar } from "app/ReusableComponents/SearchBar";
 import { usePedidoActions } from "app/functions/useUpdateData";
 import { PedidosPagados } from "app/ReusableComponents/PedidosPagados";
-// <-- Se importa el helper para convertir fechas a horario de Chile
-import { toChileDate } from "app/utils/dateUtils";
 
 const PedidosPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -29,7 +27,7 @@ const PedidosPage = () => {
   const [pedidosNoPagados, setPedidosNoPagados] = useState<Pedido[]>([]);
   const [pedidosPagados, setPedidosPagados] = useState<Pedido[]>([]);
   const [showPagados, setShowPagados] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>(""); // Declarar errorMessage
 
   const { updateData, loading: updateLoading } = useUpdateData();
   const { pedidos, setPedidosList, loading, error } = usePedidosContext();
@@ -110,7 +108,7 @@ const PedidosPage = () => {
     return statusColors[estado ?? ""] || "bg-gray-100 text-gray-800";
   };
 
-  // Función para calcular el total de montos usando fechas convertidas a horario de Chile
+  // Función para calcular el total de montos
   const handleCalculateTotal = () => {
     if (!startDate || !endDate) {
       setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
@@ -122,10 +120,10 @@ const PedidosPage = () => {
     let totalComisionSugerida = 0;
   
     const pedidosFiltrados = pedidosNoPagados.filter((pedido) => {
-      const pedidoFechaChile = toChileDate(new Date(pedido.FechaCreacion));
-      const fechaInicioChile = toChileDate(startDate);
-      const fechaTerminoChile = toChileDate(endDate);
-      return pedidoFechaChile >= fechaInicioChile && pedidoFechaChile <= fechaTerminoChile;
+      const pedidoFecha = new Date(pedido.FechaCreacion);
+      const fechaInicioObj = new Date(startDate); // startDate no es null aquí
+      const fechaTerminoObj = new Date(endDate); // endDate no es null aquí
+      return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
     });
   
     pedidosFiltrados.forEach((pedido) => {
@@ -139,7 +137,7 @@ const PedidosPage = () => {
     setTotalComisionSugerida(totalComisionSugerida);
     setIsModalOpen(true);
   };
-
+  // Mostrar mensaje de carga o error
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -208,27 +206,26 @@ const PedidosPage = () => {
             </div>
 
             <SearchBar onSearch={setSearchTerm} placeholder="Buscar..." />
-            
+
             {isModalOpen && (
-              <ComisionModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                totalMonto={totalMonto}
-                totalComisionSugerida={totalComisionSugerida}
-                startDate={startDate}
-                endDate={endDate}
-                pedidosFiltrados={pedidosNoPagados.filter((pedido) => {
-                  const pedidoFechaChile = toChileDate(new Date(pedido.FechaCreacion));
-                  const fechaInicioChile = startDate ? toChileDate(startDate) : null;
-                  const fechaTerminoChile = endDate ? toChileDate(endDate) : null;
-                  return fechaInicioChile && fechaTerminoChile
-                    ? pedidoFechaChile >= fechaInicioChile && pedidoFechaChile <= fechaTerminoChile
-                    : false;
-                }).length}
-                pedidosEntregados={pedidosNoPagados.filter(
-                  (pedido) => pedido.Estado === "Entregado"
-                ).length}
-              />
+             <ComisionModal
+             isOpen={isModalOpen}
+             onClose={() => setIsModalOpen(false)}
+             totalMonto={totalMonto}
+             totalComisionSugerida={totalComisionSugerida}
+             startDate={startDate}
+             endDate={endDate}
+             pedidosFiltrados={pedidosNoPagados.filter((pedido) => {
+               const pedidoFecha = new Date(pedido.FechaCreacion);
+               const fechaInicioObj = new Date(startDate!); // Usamos "!" para asegurar que no es null
+               const fechaTerminoObj = new Date(endDate!); // Usamos "!" para asegurar que no es null
+               return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
+             }).length}
+             pedidosEntregados={pedidosNoPagados.filter(
+               (pedido) => pedido.Estado === "Entregado"
+             ).length} // Pasar pedidosEntregados
+           />
+           
             )}
           </div>
         </div>
@@ -238,7 +235,7 @@ const PedidosPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto max-h-[80vh] pr-3">
             {pedidosNoPagados.map((pedido) => {
-              const fecha = toChileDate(new Date(pedido.FechaCreacion)).toLocaleDateString("es-ES");
+              const fecha = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES");
 
               return (
                 <div

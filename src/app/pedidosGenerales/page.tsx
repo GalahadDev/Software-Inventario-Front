@@ -255,7 +255,7 @@ const handleCalculateTotal = () => {
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     totalMonto={totalMonto}
-                    totalComisionSugerida={0} // Ajustar según sea necesario
+                    totalComisionSugerida={totalComisionSugerida} // Ajustar según sea necesario
                     startDate={startDate}
                     endDate={endDate}
                     pedidosFiltrados={filteredPedidos.length}

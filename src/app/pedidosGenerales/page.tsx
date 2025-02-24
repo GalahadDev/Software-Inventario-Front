@@ -12,8 +12,7 @@ import { useWebSocket } from "../Context/WebSocketContext";
 import { SearchBar } from "../ReusableComponents/SearchBar";
 import { usePedidoActions } from "../functions/useUpdateData";
 import { PedidosPagados } from "../ReusableComponents/PedidosPagados";
-// Importa el helper para convertir fechas a horario de Chile
-import { toChileDate } from "app/utils/dateUtils";
+import { toChileDate } from "app/functions/dateUtils";
 
 const PedidosPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -33,7 +32,7 @@ const PedidosPage = () => {
   const [pedidosPagados, setPedidosPagados] = useState<Pedido[]>([]);
   const [showPagados, setShowPagados] = useState(false); // Estado para controlar la visibilidad
   const [totalComisionSugerida, setTotalComisionSugerida] = useState(0);
-
+ 
   useEffect(() => {
     if (newOrder) {
       // Verificar si el pedido ya existe antes de agregarlo
@@ -62,73 +61,84 @@ const PedidosPage = () => {
     { name: "Galeria", href: "/galeria" }
   ];
 
-  // --- Modificaciones para convertir las fechas al horario de Chile ---
-  const calcularTotalMonto = () => {
+  const handleCalculateTotal = () => {
     if (!startDate || !endDate) {
       setErrorMessage("DEBE INGRESAR FECHA DE INICIO Y FECHA DE TERMINO");
       setTimeout(() => setErrorMessage(""), 2000);
       return;
     }
-
+  
+    // Ajustar las fechas para incluir todo el día
+    const startOfDay = new Date(startDate);
+    startOfDay.setHours(0, 0, 0, 0); // Inicio del día (00:00:00.000)
+  
+    const endOfDay = new Date(endDate);
+    endOfDay.setHours(23, 59, 59, 999); // Fin del día (23:59:59.999)
+  
+    // Filtrar pedidos dentro del rango de fechas
+    const pedidosFiltrados = pedidosNoPagados.filter((pedido) => {
+      const pedidoFecha = new Date(pedido.FechaCreacion);
+      return pedidoFecha >= startOfDay && pedidoFecha <= endOfDay;
+    });
+  
+    // Calcular totales
     let totalComision = 0;
     let totalComisionSugerida = 0;
-
-    // Convierte las fechas de inicio y término a horario de Chile
-    const fechaInicioChile = toChileDate(startDate);
-    const fechaTerminoChile = toChileDate(endDate);
-
-    const pedidosFiltrados = pedidosNoPagados.filter((pedido) => {
-      // Convierte la fecha del pedido a Chile
-      const pedidoFechaChile = toChileDate(new Date(pedido.FechaCreacion));
-      return (
-        pedidoFechaChile >= fechaInicioChile &&
-        pedidoFechaChile <= fechaTerminoChile &&
-        pedido.Estado === "Entregado"
-      );
-    });
-
+  
     pedidosFiltrados.forEach((pedido) => {
-      const comision = typeof pedido.Monto === "string" ? parseFloat(pedido.Monto) : Number(pedido.Monto) || 0;
+      const comision =
+        typeof pedido.Monto === "string"
+          ? parseFloat(pedido.Monto)
+          : Number(pedido.Monto) || 0;
       totalComision += comision;
-
-      const comisionSugerida = typeof pedido.Comision_Sugerida === "string" ? parseFloat(pedido.Comision_Sugerida) : Number(pedido.Comision_Sugerida) || 0;
+  
+      const comisionSugerida =
+        typeof pedido.Comision_Sugerida === "string"
+          ? parseFloat(pedido.Comision_Sugerida)
+          : Number(pedido.Comision_Sugerida) || 0;
       totalComisionSugerida += comisionSugerida;
     });
-
+  
     setTotalMonto(totalComision);
     setTotalComisionSugerida(totalComisionSugerida);
     setIsModalOpen(true);
-    setErrorMessage("");
   };
 
   const filteredPedidos = useMemo(() => {
     if (!pedidosNoPagados) return [];
-
+  
+    // Ordenar pedidos por fecha de creación en orden descendente
     const sortedPedidos = [...pedidosNoPagados].sort((a, b) =>
-      toChileDate(new Date(b.FechaCreacion)).getTime() - toChileDate(new Date(a.FechaCreacion)).getTime()
+      toChileDate(new Date(b.FechaCreacion)).getTime() -
+      toChileDate(new Date(a.FechaCreacion)).getTime()
     );
-
+  
     return sortedPedidos.filter((pedido) => {
       const fechaCreacionChile = toChileDate(new Date(pedido.FechaCreacion));
       if (isNaN(fechaCreacionChile.getTime())) return false;
-
-      // Convertir startDate y endDate a horario de Chile (si existen)
-      const fechaInicioChile = startDate ? toChileDate(startDate) : null;
-      const fechaTerminoChile = endDate ? toChileDate(endDate) : null;
-
-      const isInRange = fechaInicioChile && fechaTerminoChile
-        ? (fechaCreacionChile >= fechaInicioChile && fechaCreacionChile <= fechaTerminoChile)
-        : true;
-
+  
+      // Convertir startDate y endDate a horario de Chile si existen
+      const fechaInicioChile = startDate ? toChileDate(new Date(startDate)) : null;
+      const fechaTerminoChile = endDate ? toChileDate(new Date(endDate)) : null;
+  
+      // Validar si la fecha está dentro del rango (si ambos límites existen)
+      const isInRange =
+        (!fechaInicioChile || fechaCreacionChile >= fechaInicioChile) &&
+        (!fechaTerminoChile || fechaCreacionChile <= fechaTerminoChile);
+  
+      // Filtrar por término de búsqueda en cualquier propiedad del pedido
       const matchesSearch = searchTerm
         ? Object.values(pedido)
-            .some(value => value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()))
+            .filter((value) => value !== null && value !== undefined) // Evita valores nulos o indefinidos
+            .some((value) =>
+              value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+            )
         : true;
-
+        console.log("SearchTerm actual:", searchTerm);
       return isInRange && matchesSearch;
     });
   }, [pedidosNoPagados, startDate, endDate, searchTerm]);
-  // --- Fin de modificaciones para fechas ---
+  
 
   const handleCardClick = async (pedido: Pedido) => {
     try {
@@ -164,14 +174,19 @@ const PedidosPage = () => {
     pagado: string
   ) => {
     try {
+      // Verificar si el estado es "Entregado"
       if (estado === "Entregado") {
+        // Si el estado es "Entregado", no permitimos modificar el fletero
         const pedidoActual = filteredPedidos.find((pedido) => pedido.ID === id);
         if (pedidoActual) {
-          fletero = pedidoActual.Fletero;
+          fletero = pedidoActual.Fletero; // Mantenemos el fletero original
         }
       }
 
+      // Actualizar los datos del pedido
       await updateData(`/pedidos/${id}`, { monto, fletero, estado, atendido: Atendido, pagado });
+
+      // Cerrar el modal después de la actualización
       setShowModal(false);
     } catch (error) {
       console.error("Error al actualizar el monto:", error);
@@ -194,71 +209,70 @@ const PedidosPage = () => {
       </header>
 
       <main className="flex-grow mt-[80px] px-4 py-8 container mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">
-          {showPagados ? "Pedidos Pagados" : "Pedidos No Pagados"}
-        </h1>
-
-        <div className="mb-8">
-          <SearchDate
-            startDate={startDate}
-            endDate={endDate}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
+        {/* Mostrar PedidosPage o PedidosPagados según el estado */}
+        {showPagados ? (
+          <PedidosPagados
+            pedidosPagados={pedidosPagados}
+            onBackToNoPagados={() => setShowPagados(false)} // Callback para volver a PedidosPage
           />
-          <div>
-            <div className="mt-6 mb-6 flex gap-4">
-              <button
-                onClick={calcularTotalMonto}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-              >
-                Calcular Total de Comision
-              </button>
+        ) : (
+          <>
+            <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">
+              Pedidos No Pagados
+            </h1>
 
-              <button
-                onClick={() => setShowPagados(!showPagados)}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                {showPagados ? "Ver No Pagados" : "Ver Pagados"}
-              </button>
-            </div>
-            <span className="text-red-700">{errorMessage}</span>
-
-            <SearchBar onSearch={setSearchTerm} placeholder="Buscar..." />
-            {isModalOpen && (
-              <ComisionModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                totalMonto={totalMonto}
-                totalComisionSugerida={totalComisionSugerida}
+            <div className="mb-8">
+              <SearchDate
                 startDate={startDate}
                 endDate={endDate}
-                pedidosFiltrados={pedidosNoPagados.filter((pedido) => {
-                  const pedidoFechaChile = toChileDate(new Date(pedido.FechaCreacion));
-                  const fechaInicioChile = startDate ? toChileDate(startDate) : null;
-                  const fechaTerminoChile = endDate ? toChileDate(endDate) : null;
-                  return fechaInicioChile && fechaTerminoChile
-                    ? pedidoFechaChile >= fechaInicioChile && pedidoFechaChile <= fechaTerminoChile
-                    : false;
-                }).length}
-                pedidosEntregados={pedidosNoPagados.filter(
-                  (pedido) => pedido.Estado === "Entregado"
-                ).length}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
               />
-            )}
-          </div>
-        </div>
+              <div>
+                <div className="mt-6 mb-6 flex gap-4">
+                  <button
+                    onClick={handleCalculateTotal}
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  >
+                    Calcular Total de Comision
+                  </button>
 
-        {showPagados ? (
-          <PedidosPagados pedidosPagados={pedidosPagados} />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto max-h-[80vh] pr-3">
-            {filteredPedidos.map((pedido) => {
-              const fecha = toChileDate(new Date(pedido.FechaCreacion)).toLocaleDateString("es-ES");
+                  <button
+                    onClick={() => setShowPagados(true)} // Cambiar a Pedidos Pagados
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    Ver Pedidos Pagados
+                  </button>
+                </div>
+                <span className="text-red-700">{errorMessage}</span>
 
-              return (
-                <div
-                  key={`${pedido.ID}-${pedido.Nombre}`}
-                  className={`
+                <SearchBar onSearch={setSearchTerm} placeholder="Buscar..." />
+                {isModalOpen && (
+                  <ComisionModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    totalMonto={totalMonto}
+                    totalComisionSugerida={0} // Ajustar según sea necesario
+                    startDate={startDate}
+                    endDate={endDate}
+                    pedidosFiltrados={filteredPedidos.length}
+                    pedidosEntregados={filteredPedidos.filter(
+                      (pedido) => pedido.Estado === "Entregado"
+                    ).length}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Lista de pedidos no pagados */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto max-h-[80vh] pr-3">
+              {filteredPedidos.map((pedido) => {
+                const fecha = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES");
+
+                return (
+                  <div
+                    key={`${pedido.ID}-${pedido.Nombre}`}
+                    className={`
                     rounded-xl 
                     shadow-lg 
                     hover:shadow-xl 
@@ -270,119 +284,131 @@ const PedidosPage = () => {
                     origin-center 
                     ${pedido.Atendido ? 'bg-white' : 'bg-yellow-200 animate-pulse-scale'}
                   `}
-                  onClick={() => handleCardClick(pedido)}
-                >
-                  <div className="relative">
-                    <img
-                      src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
-                      alt={`Pedido de ${pedido.Nombre}`}
-                      className="w-full h-48 object-cover"
-                    />
-                    <div
-                      className={`
-                        absolute 
-                        top-4 
-                        right-4 
-                        px-3 
-                        py-1 
-                        rounded-full 
-                        text-sm 
-                        font-medium 
-                        ${getStatusColor(pedido.Estado)}
-                      `}
-                    >
-                      {pedido.Estado || "Sin estado"}
-                    </div>
-                  </div>
-
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-semibold text-gray-800">
-                        {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
-                      </h2>
-                      <span className="flex items-center text-green-600 font-semibold">
-                        <DollarSign className="w-5 h-5 mr-1" />
-                        {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
-                      </span>
+                    onClick={() => handleCardClick(pedido)}
+                  >
+                    <div className="relative">
+                      <img
+                        src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
+                        alt={`Pedido de ${pedido.Nombre}`}
+                        className="w-full h-48 object-cover"
+                      />
+                      <div
+                        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(pedido.Estado)}`}
+                      >
+                        {pedido.Estado || "Sin estado"}
+                      </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-start">
-                        <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                        <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold text-gray-800">
+                          {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
+                        </h2>
+                        <span className="flex items-center text-green-600 font-semibold">
+                          <DollarSign className="w-5 h-5 mr-1" />
+                          {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
+                        </span>
                       </div>
 
-                      {pedido.Tela && (
-                        <div className="flex items-center">
-                          <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                          <p className="text-gray-600">Tela: {pedido.Tela}</p>
-                        </div>
-                      )}
-
-                      {pedido.Color && (
-                        <div className="flex items-center">
-                          <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                          <p className="text-gray-600">Color: {pedido.Color}</p>
-                        </div>
-                      )}
-
-                      <div className="flex items-center">
-                        <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                        <p className="text-gray-600">Direccion: {pedido.Direccion}</p>
-                      </div>
-
-                      <div className="flex items-center">
-                        <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
-                        <p className="text-gray-600">Forma de pago: {pedido.Forma_Pago}</p>
-                      </div>
-
-                      {pedido.Observaciones && (
+                      <div className="space-y-3">
+                        {/* Descripción */}
                         <div className="flex items-start">
-                          <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                          <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
+                          <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+                          <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
                         </div>
-                      )}
 
-                      <div className="flex flex-col space-y-2 pt-3 border-t border-gray-100">
-                        <div className="flex items-center">
-                          <Truck className="w-5 h-5 mr-2 text-gray-500" />
-                          <span className="text-gray-600">Despacho: {pedido.Fletero || "Sin Asignar"}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <span className="text-sm text-gray-500">Comisión: ${pedido.Monto || "0"}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <span className="text-sm text-gray-500">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</span>
-                        </div>
-                      </div>
+                        {/* Tela */}
+                        {pedido.Tela && (
+                          <div className="flex items-center">
+                            <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                            <p className="text-gray-600">Tela: {pedido.Tela}</p>
+                          </div>
+                        )}
 
-                      <div className="flex items-center">
-                        <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
-                        <p className="text-gray-600">Estado de pago: {pedido.Pagado}</p>
-                      </div>
+                        {/* Color */}
+                        {pedido.Color && (
+                          <div className="flex items-center">
+                            <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                            <p className="text-gray-600">Color: {pedido.Color}</p>
+                          </div>
+                        )}
 
-                      <div className="flex items-center">
-                        <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                        <p className="text-gray-600">{fecha}</p>
+                        {/* Dirección */}
+                        <div className="flex items-center">
+                          <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">Direccion: {pedido.Direccion}</p>
+                        </div>
+
+                        {/* Forma de pago */}
+                        <div className="flex items-center">
+                          <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">Forma de pago: {pedido.Forma_Pago}</p>
+                        </div>
+
+                        {/* Observaciones */}
+                        {pedido.Observaciones && (
+                          <div className="flex items-start">
+                            <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+                            <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
+                          </div>
+                        )}
+
+                        {/* Fletero y comisiones */}
+                        <div className="flex flex-col space-y-2 pt-3 border-t border-gray-100">
+                          <div className="flex items-center">
+                            <Truck className="w-5 h-5 mr-2 text-gray-500" />
+                            <span className="text-gray-600">Despacho: {pedido.Fletero || "Sin Asignar"}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="text-sm text-gray-500">Comisión: ${pedido.Monto || "0"}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="text-sm text-gray-500">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</span>
+                          </div>
+                        </div>
+
+                        {/* Estado de pago */}
+                        <div className="flex items-center">
+                          <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">Estado de pago: {pedido.Pagado}</p>
+                        </div>
+
+                        {/* Fecha */}
+                        <div className="flex items-center">
+                          <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">{fecha}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="mt-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSendToWhatsApp(pedido);
-                      }}
-                      className="flex items-center justify-center w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition"
-                    >
-                      Enviar a WhatsApp
-                    </button>
+                    <div className="mt-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSendToWhatsApp(pedido);
+                        }}
+                        className="
+                      flex 
+                      items-center 
+                      justify-center 
+                      w-full 
+                      bg-green-500 
+                      text-white 
+                      py-2 
+                      px-4 
+                      rounded-lg 
+                      hover:bg-green-600 
+                      transition
+                    "
+                      >
+                        Enviar a WhatsApp
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </>
         )}
 
         {showModal && selectedPedido && (
@@ -399,4 +425,3 @@ const PedidosPage = () => {
 };
 
 export default PedidosPage;
-

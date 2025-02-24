@@ -39,7 +39,7 @@ const CrearVendedor = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Formulario enviado");
+    
 
     // Preparar los datos a enviar según la pestaña seleccionada
     let dataToSend;
@@ -59,7 +59,7 @@ const CrearVendedor = () => {
 
     // Seleccionar el esquema de validación según la pestaña activa
     const schema = activeTab === "Vendedor" ? vendedorSchema : administradorSchema;
-    console.log("Esquema seleccionado:", schema);
+   
 
     if (!schema) {
       console.error("El esquema de validación no está definido.");
@@ -80,9 +80,9 @@ const CrearVendedor = () => {
     }
 
     try {
-      console.log("Enviando petición a la API...");
+      
       const apiResponse = await crearUsuario(dataToSend);
-      console.log("Respuesta de la API:", apiResponse);
+      
 
       // Guardar la respuesta en el estado
       setApiResponse(apiResponse);

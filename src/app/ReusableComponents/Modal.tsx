@@ -24,6 +24,9 @@ export const Modal: React.FC<ModalProps> = ({ pedido, onClose, onSave, loading }
   // Verificar si el estado es "Entregado"
   const isEstadoEntregado = estado === "Entregado";
 
+  // Verificar si se puede cambiar a "Pagado"
+  const canChangeToPagado = isEstadoEntregado;
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 p-4">
       <div className="bg-white text-black rounded-xl shadow-lg w-full max-w-md transform transition-all max-h-[70vh] overflow-y-auto">
@@ -122,11 +125,24 @@ export const Modal: React.FC<ModalProps> = ({ pedido, onClose, onSave, loading }
                 <select
                   value={pagado}
                   onChange={(e) => setPagado(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    !canChangeToPagado && pagado === "No Pagado"
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "border-gray-300"
+                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors`}
+                  disabled={!canChangeToPagado && pagado === "No Pagado"} // Deshabilitar si no se puede cambiar a "Pagado"
                 >
                   <option value="No Pagado">No Pagado</option>
-                  <option value="Pagado">Pagado</option>
+                  <option value="Pagado" disabled={!canChangeToPagado}>
+                    Pagado
+                  </option>
                 </select>
+                {/* Mensaje de error si no se puede cambiar a "Pagado" */}
+                {!canChangeToPagado && pagado === "No Pagado" && (
+                  <p className="text-sm text-red-500 mt-1">
+                    No se puede marcar como "Pagado" si el estado no es "Entregado".
+                  </p>
+                )}
               </div>
             </div>
           </div>

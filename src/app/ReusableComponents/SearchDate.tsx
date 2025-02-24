@@ -10,18 +10,39 @@ interface SearchBarProps {
   onEndDateChange: (date: Date | null) => void;
 }
 
+// Función para convertir la fecha a la zona horaria local
+const parseLocalDate = (date: Date | null) => {
+  if (!date) return null;
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
+};
+
 export function SearchDate({
   startDate,
   endDate,
   onStartDateChange,
   onEndDateChange,
 }: SearchBarProps) {
+  // Manejar cambios en las fechas
+  const handleStartDateChange = (date: Date | null) => {
+    const localDate = parseLocalDate(date);
+    onStartDateChange(localDate);
+  };
+
+  const handleEndDateChange = (date: Date | null) => {
+    const localDate = parseLocalDate(date);
+    onEndDateChange(localDate);
+  };
+
   return (
     <div className="mb-6 flex space-x-4">
       <div className="relative">
         <DatePicker
           selected={startDate}
-          onChange={onStartDateChange}
+          onChange={handleStartDateChange}
           selectsStart
           startDate={startDate}
           endDate={endDate}
@@ -33,11 +54,11 @@ export function SearchDate({
       <div className="relative">
         <DatePicker
           selected={endDate}
-          onChange={onEndDateChange}
+          onChange={handleEndDateChange}
           selectsEnd
           startDate={startDate}
           endDate={endDate}
-          minDate={startDate || undefined} 
+          minDate={startDate || undefined}
           placeholderText="Fecha De Termino"
           className="w-full px-4 py-2 text-gray-700 bg-white border rounded-lg focus:border-blue-500 focus:outline-none focus:ring"
         />

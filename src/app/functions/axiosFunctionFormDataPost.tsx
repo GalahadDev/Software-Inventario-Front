@@ -46,7 +46,8 @@ export const sendSalesData = async (sales: SaleForm) => {
       },
     });
 
-   console.log("Respuesta del servidor:", response.data);
+   
+    
   
     return response.data;
   } catch (error: any) {

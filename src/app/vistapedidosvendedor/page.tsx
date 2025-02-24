@@ -7,6 +7,7 @@ import { Header } from "app/ReusableComponents/Header";
 import { SearchBar } from "app/ReusableComponents/SearchBar";
 import { Pedido } from "app/types";
 import { DollarSign, CreditCard, Truck, Package, MapPin, ClipboardList } from "lucide-react";
+import { toChileDate } from "app/functions/dateUtils";
 
 const VistaPedidosVendedor = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
@@ -68,18 +69,27 @@ const VistaPedidosVendedor = () => {
   }, [vendedorId, token]);
 
   const filteredPedidos = useMemo(() => {
-    return pedidos.filter((pedido) => {
-      const fechaCreacion = new Date(pedido.FechaCreacion);
-      if (isNaN(fechaCreacion.getTime())) return false;
+    if (!pedidos) return [];
 
-      const isInRange =
-        (!startDate || fechaCreacion >= startDate) &&
-        (!endDate || fechaCreacion <= endDate);
+    const sortedPedidos = [...pedidos].sort((a, b) =>
+      toChileDate(new Date(b.FechaCreacion)).getTime() - toChileDate(new Date(a.FechaCreacion)).getTime()
+    );
+
+    return sortedPedidos.filter((pedido) => {
+      const fechaCreacionChile = toChileDate(new Date(pedido.FechaCreacion));
+      if (isNaN(fechaCreacionChile.getTime())) return false;
+
+      // Convertir startDate y endDate a horario de Chile (si existen)
+      const fechaInicioChile = startDate ? toChileDate(startDate) : null;
+      const fechaTerminoChile = endDate ? toChileDate(endDate) : null;
+
+      const isInRange = fechaInicioChile && fechaTerminoChile
+        ? (fechaCreacionChile >= fechaInicioChile && fechaCreacionChile <= fechaTerminoChile)
+        : true;
 
       const matchesSearch = searchTerm
-        ? Object.values(pedido).some((value) =>
-            value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-          )
+        ? Object.values(pedido)
+            .some(value => value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()))
         : true;
 
       return isInRange && matchesSearch;
@@ -92,7 +102,7 @@ const VistaPedidosVendedor = () => {
       setTimeout(() => setErrorMessage(""), 2000);
       return;
     }
-  
+
     const total = filteredPedidos
       .filter((pedido) => {
         const pedidoFecha = new Date(pedido.FechaCreacion);
@@ -107,10 +117,10 @@ const VistaPedidosVendedor = () => {
         const comision = typeof pedido.Comision_Sugerida === 'string' 
           ? parseFloat(pedido.Comision_Sugerida) 
           : Number(pedido.Comision_Sugerida) || 0;
-        
+
         return sum + comision;
       }, 0);
-  
+
     setTotalMonto(total);
     setIsModalOpen(true);
     setErrorMessage("");
@@ -171,107 +181,107 @@ const VistaPedidosVendedor = () => {
           </div>
         )}
 
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-  {filteredPedidos.map((pedido) => {
-    const fecha = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES");
-    return (
-      <div key={pedido.ID} className="bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="relative">
-          <img
-            src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
-            alt={`Pedido de ${pedido.Nombre}`}
-            className="w-full h-48 object-cover"
-          />
-          <div
-            className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusBackgroundColor(pedido.Estado)}`}
-          >
-            {pedido.Estado || "Sin estado"}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredPedidos.map((pedido) => {
+            const fecha = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES");
+            return (
+              <div key={pedido.ID} className="bg-white shadow-md rounded-lg overflow-hidden">
+                <div className="relative">
+                  <img
+                    src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
+                    alt={`Pedido de ${pedido.Nombre}`}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div
+                    className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusBackgroundColor(pedido.Estado)}`}
+                  >
+                    {pedido.Estado || "Sin estado"}
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">
+                      {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
+                    </h2>
+                    <span className="flex items-center text-green-600 font-semibold">
+                      <DollarSign className="w-5 h-5 mr-1" />
+                      {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Descripción */}
+                    <div className="flex items-start">
+                      <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+                      <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
+                    </div>
+
+                    {/* Tela */}
+                    {pedido.Tela && (
+                      <div className="flex items-center">
+                        <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                        <p className="text-gray-600">Tela: {pedido.Tela}</p>
+                      </div>
+                    )}
+
+                    {/* Color */}
+                    {pedido.Color && (
+                      <div className="flex items-center">
+                        <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                        <p className="text-gray-600">Color: {pedido.Color}</p>
+                      </div>
+                    )}
+
+                    {/* Dirección */}
+                    <div className="flex items-center">
+                      <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                      <p className="text-gray-600">Dirección: {pedido.Direccion}</p>
+                    </div>
+
+                    {/* Forma de pago */}
+                    <div className="flex items-center">
+                      <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+                      <p className="text-gray-600">Forma de pago: {pedido.Forma_Pago}</p>
+                    </div>
+
+                    {/* Observaciones */}
+                    {pedido.Observaciones && (
+                      <div className="flex items-start">
+                        <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+                        <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
+                      </div>
+                    )}
+
+                    {/* Fletero y comisiones */}
+                    <div className="flex flex-col space-y-2 pt-3 border-t border-gray-100">
+                      <div className="flex items-center">
+                        <Truck className="w-5 h-5 mr-2 text-gray-500" />
+                        <span className="text-gray-600">Despacho: {pedido.Fletero || "Sin Asignar"}</span>
+                      </div>
+
+                      <div className="flex items-center">
+                        <span className="text-sm text-gray-500">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</span>
+                      </div>
+                    </div>
+
+                    {/* Estado de pago */}
+                    <div className="flex items-center">
+                      <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+                      <p className="text-gray-600">Estado de pago: {pedido.Pagado ? "Pagado" : "Pendiente"}</p>
+                    </div>
+
+                    {/* Fecha */}
+                    <div className="flex items-center">
+                      <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                      <p className="text-gray-600">{fecha}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
-            </h2>
-            <span className="flex items-center text-green-600 font-semibold">
-              <DollarSign className="w-5 h-5 mr-1" />
-              {isNaN(pedido.Precio) ? "0.00" : pedido.Precio.toFixed(2)}
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {/* Descripción */}
-            <div className="flex items-start">
-              <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-              <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
-            </div>
-
-            {/* Tela */}
-            {pedido.Tela && (
-              <div className="flex items-center">
-                <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                <p className="text-gray-600">Tela: {pedido.Tela}</p>
-              </div>
-            )}
-
-            {/* Color */}
-            {pedido.Color && (
-              <div className="flex items-center">
-                <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                <p className="text-gray-600">Color: {pedido.Color}</p>
-              </div>
-            )}
-
-            {/* Dirección */}
-            <div className="flex items-center">
-              <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-              <p className="text-gray-600">Dirección: {pedido.Direccion}</p>
-            </div>
-
-            {/* Forma de pago */}
-            <div className="flex items-center">
-              <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
-              <p className="text-gray-600">Forma de pago: {pedido.Forma_Pago}</p>
-            </div>
-
-            {/* Observaciones */}
-            {pedido.Observaciones && (
-              <div className="flex items-start">
-                <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
-              </div>
-            )}
-
-            {/* Fletero y comisiones */}
-            <div className="flex flex-col space-y-2 pt-3 border-t border-gray-100">
-              <div className="flex items-center">
-                <Truck className="w-5 h-5 mr-2 text-gray-500" />
-                <span className="text-gray-600">Despacho: {pedido.Fletero || "Sin Asignar"}</span>
-              </div>
-            
-              <div className="flex items-center">
-                <span className="text-sm text-gray-500">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</span>
-              </div>
-            </div>
-
-            {/* Estado de pago */}
-            <div className="flex items-center">
-              <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
-              <p className="text-gray-600">Estado de pago: {pedido.Pagado ? "Pagado" : "Pendiente"}</p>
-            </div>
-
-            {/* Fecha */}
-            <div className="flex items-center">
-              <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-              <p className="text-gray-600">{fecha}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  })}
-</div>
       </main>
 
       {isModalOpen && (

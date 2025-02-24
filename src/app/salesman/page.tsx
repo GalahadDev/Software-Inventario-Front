@@ -102,7 +102,7 @@ function SalesMan() {
 
       // Si la validación es exitosa, enviar los datos
       const response = await sendSalesData(updatedSales);
-      console.log("Pedido enviado con éxito:", response);
+      
       setErrors({}); // Limpiar errores después de un envío exitoso
       if (response.mensaje === "Pedido creado exitosamente") {
         setIsOpen(true);

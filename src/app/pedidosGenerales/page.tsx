@@ -111,7 +111,7 @@ const PedidosPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <header className="w-full fixed top-0 left-0 bg-white shadow-lg z-10">
-        <Header navigation={navigation} />
+        <Header navigation={navigator} />
       </header>
 
       <main className="flex-grow mt-[80px] px-4 py-8 container mx-auto">

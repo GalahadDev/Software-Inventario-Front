@@ -348,13 +348,7 @@ const handleCalculateTotal = () => {
                           <p className="text-gray-600">Forma de pago: {pedido.Forma_Pago}</p>
                         </div>
 
-                        {/* Observaciones */}
-                        {pedido.Observaciones && (
-                          <div className="flex items-start">
-                            <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                            <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
-                          </div>
-                        )}
+                       
 
                         {/* Fletero y comisiones */}
                         <div className="flex flex-col space-y-2 pt-3 border-t border-gray-100">
@@ -375,10 +369,24 @@ const handleCalculateTotal = () => {
                           <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
                           <p className="text-gray-600">Estado de pago: {pedido.Pagado}</p>
                         </div>
+
+                        <div className="flex items-center">
+                          <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">Numero de Telefono: {pedido.Nro_Tlf}</p>
+                        </div>
+                        
                          <div className="flex items-center">
                           <MapPin className="w-5 h-5 mr-3 text-gray-500" />
                           <p className="text-gray-600">Vendedor: {pedido.Nombre_Vendedor}</p>
                         </div>
+
+                         {/* Observaciones */}
+                        {pedido.Observaciones && (
+                          <div className="flex items-start">
+                            <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+                            <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
+                          </div>
+                        )}
 
                         {/* Fecha */}
                         <div className="flex items-center">

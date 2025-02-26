@@ -13,7 +13,7 @@ export interface Pedido {
     FechaCreacion: Date
     Atendido: boolean
     UsuarioID: string
-    nro_tlf: string,
+    Nro_Tlf: string,
     Pagado: string,
     Nombre_Vendedor: string,
     Tela:String,

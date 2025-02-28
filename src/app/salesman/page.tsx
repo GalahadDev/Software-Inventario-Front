@@ -5,7 +5,7 @@ import { sendSalesData } from "../functions/axiosFunctionFormDataPost";
 import { useGlobalState } from "../Context/contextUser";
 import { SaleForm } from "../types";
 import { pedidoScheme } from "../validaciones/pedidoScheme";
-import { SuccessModal } from '../ReusableComponents/Exito';
+import { SuccessModal } from "../ReusableComponents/Exito";
 
 function SalesMan() {
   const { usuario } = useGlobalState();
@@ -28,9 +28,9 @@ function SalesMan() {
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
   const [isOpen, setIsOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,7 +51,7 @@ function SalesMan() {
       setErrors((prev) => ({ ...prev, precio: "" }));
       setSales((prev) => ({
         ...prev,
-        precio: null,
+        precio: 0,
       }));
       return;
     }
@@ -83,13 +83,15 @@ function SalesMan() {
       return;
     }
 
+    // Deshabilitar el botón al iniciar el envío
+    setIsSubmitting(true);
+
     const updatedSales: SaleForm = {
       ...sales,
       usuario_id: usuario.usuario_id,
     };
 
     try {
-      // Validar los datos del formulario con el esquema pedidoScheme
       const result = pedidoScheme.safeParse(updatedSales);
       if (!result.success) {
         const errorMap = result.error.formErrors.fieldErrors;
@@ -101,10 +103,9 @@ function SalesMan() {
         return;
       }
 
-      // Si la validación es exitosa, enviar los datos
       const response = await sendSalesData(updatedSales);
 
-      setErrors({}); // Limpiar errores después de un envío exitoso
+      setErrors({});
       if (response.mensaje === "Pedido creado exitosamente") {
         setIsOpen(true);
         setSales({
@@ -123,10 +124,15 @@ function SalesMan() {
           subVendedor: "",
           Comision_Sugerida: "",
           fecha_entrega: ""
-        })
+        });
       }
     } catch (error) {
       console.error("Error al enviar el pedido:", error);
+    } finally {
+      // Vuelve a habilitar el botón después de 4 segundos
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 4000);
     }
   };
 
@@ -158,8 +164,6 @@ function SalesMan() {
                   onChange={(e) => handleInputChange(e, sales, setSales)}
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
-
-
                 <input
                   type="text"
                   name="descripcion"
@@ -169,7 +173,6 @@ function SalesMan() {
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
                 {errors.descripcion && <p className="text-red-500 text-xs mt-1">{errors.descripcion}</p>}
-
                 <input
                   type="text"
                   name="tela"
@@ -178,7 +181,6 @@ function SalesMan() {
                   onChange={(e) => handleInputChange(e, sales, setSales)}
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
-
                 <input
                   type="text"
                   name="color"
@@ -187,10 +189,6 @@ function SalesMan() {
                   onChange={(e) => handleInputChange(e, sales, setSales)}
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
-
-
-
-
 
                 <div>
                   <input
@@ -221,14 +219,15 @@ function SalesMan() {
                 />
                 {errors.observaciones && <p className="text-red-500 text-xs mt-1">{errors.observaciones}</p>}
 
-                  <span className="text-black m-0">Fecha de Entrega</span>
+                <span className="text-black m-0">Fecha de Entrega</span>
                 <input
-                id="fe"
-                  type="date" // Cambia el tipo a "date"
-                  name="fecha_entrega" // Nombre del campo
-                  placeholder="Selecciona una fecha" // Placeholder opcional
-                  value={sales.fecha_entrega} // Valor del campo (debe ser un string en formato YYYY-MM-DD)
-                  onChange={(e) => handleInputChange(e, sales, setSales)} // Manejador de cambios
+                  id="fe"
+                  type="date"
+                  name="fecha_entrega"
+                  placeholder="Selecciona una fecha"
+                  value={sales.fecha_entrega}
+                  min={new Date().toISOString().split("T")[0]}
+                  onChange={(e) => handleInputChange(e, sales, setSales)}
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
 
@@ -277,8 +276,6 @@ function SalesMan() {
                     className="w-full h-auto object-cover"
                   />
                 </div>
-
-
               )}
 
               <SuccessModal
@@ -289,11 +286,11 @@ function SalesMan() {
 
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="mt-4 sm:mt-6 bg-blue-600 text-white rounded-lg py-2.5 sm:py-3 px-6 font-medium hover:bg-blue-700 transform transition-all duration-200 ease-in-out hover:shadow-lg active:scale-[0.98] text-sm sm:text-base"
               >
                 Enviar Pedido
               </button>
-
             </form>
           </div>
         </div>

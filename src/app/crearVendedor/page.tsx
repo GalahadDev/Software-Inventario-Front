@@ -106,23 +106,26 @@ const CrearVendedor = () => {
     }
   };
 
- const handleSendToWhatsApp = () => {
+  const handleSendToWhatsApp = () => {
+    // Verificar si hay un usuario válido
     if (!apiResponse || !apiResponse.data.username) {
-        alert("No hay usuario para enviar.");
-        return;
+      alert("No hay usuario para enviar.");
+      return; // Detener la ejecución si no hay usuario
     }
-
+  
+    // Construir el mensaje
     const urlPlataforma = "https://kings-bed-sm.onrender.com/login"; // URL sin codificar
     const mensaje = `Hola, Soy parte del equipo administrativo de muebles King’s House. 
-    Este es tu usuario para ingresar pedidos en nuestra plataforma: 
-    Usuario: ${apiResponse.data.username} 
-    y este es el link de acceso a la plataforma: ${urlPlataforma}`;
-
+  Este es tu usuario para ingresar pedidos en nuestra plataforma: 
+  Usuario: ${apiResponse.data.username} 
+  y este es el link de acceso a la plataforma: ${urlPlataforma}`;
+  
+    // Codificar el mensaje para usarlo en la URL
     const mensajeCodificado = encodeURIComponent(mensaje);
-
-    // Abre WhatsApp Web o la aplicación de escritorio sin especificar número
+  
+    // Abrir WhatsApp Web o la aplicación de escritorio sin especificar número
     window.open(`https://api.whatsapp.com/send?text=${mensajeCodificado}`, "_blank");
-};
+  };
 
   return (
     <div className="w-full min-h-screen bg-slate-50">

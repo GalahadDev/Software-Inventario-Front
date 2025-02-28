@@ -23,7 +23,8 @@ function SalesMan() {
     tela: "",
     color: "",
     subVendedor: "",
-     Comision_Sugerida:""
+    Comision_Sugerida: "",
+    fecha_entrega: ""
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -102,7 +103,7 @@ function SalesMan() {
 
       // Si la validación es exitosa, enviar los datos
       const response = await sendSalesData(updatedSales);
-      
+
       setErrors({}); // Limpiar errores después de un envío exitoso
       if (response.mensaje === "Pedido creado exitosamente") {
         setIsOpen(true);
@@ -120,7 +121,8 @@ function SalesMan() {
           tela: "",
           color: "",
           subVendedor: "",
-          Comision_Sugerida:""
+          Comision_Sugerida: "",
+          fecha_entrega: ""
         })
       }
     } catch (error) {
@@ -189,6 +191,7 @@ function SalesMan() {
 
 
 
+
                 <div>
                   <input
                     type="number"
@@ -217,6 +220,18 @@ function SalesMan() {
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
                 {errors.observaciones && <p className="text-red-500 text-xs mt-1">{errors.observaciones}</p>}
+
+                  <span className="text-black m-0">Fecha de Entrega</span>
+                <input
+                id="fe"
+                  type="date" // Cambia el tipo a "date"
+                  name="fecha_entrega" // Nombre del campo
+                  placeholder="Selecciona una fecha" // Placeholder opcional
+                  value={sales.fecha_entrega} // Valor del campo (debe ser un string en formato YYYY-MM-DD)
+                  onChange={(e) => handleInputChange(e, sales, setSales)} // Manejador de cambios
+                  className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
+                />
+
                 <input
                   type="text"
                   name="nro_tlf"

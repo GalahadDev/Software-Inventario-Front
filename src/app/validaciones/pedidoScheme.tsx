@@ -12,7 +12,7 @@ export const pedidoScheme = z.object({
     .min(1000, "El precio debe ser mayor a 1000"),
   observaciones: z
     .string()
-    .max(255, "Las observaciones no pueden tener más de 255 caracteres"),
+    .max(60, "Las observaciones no pueden tener más de 60 caracteres"),
   imagen: z
     .custom<File>((file) => file instanceof File, "Debe ser un archivo")
     .refine(

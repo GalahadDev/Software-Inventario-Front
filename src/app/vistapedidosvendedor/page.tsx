@@ -6,7 +6,7 @@ import { SearchDate } from "../ReusableComponents/SearchDate";
 import { Header } from "app/ReusableComponents/Header";
 import { SearchBar } from "app/ReusableComponents/SearchBar";
 import { Pedido } from "app/types";
-import { DollarSign, CreditCard, Truck, Package, MapPin, ClipboardList } from "lucide-react";
+import { DollarSign, CreditCard, Truck, Package, MapPin, ClipboardList, Droplet, User, Calendar, Phone } from "lucide-react";
 import { toChileDate } from "app/functions/dateUtils";
 
 const VistaPedidosVendedor = () => {
@@ -63,7 +63,7 @@ const VistaPedidosVendedor = () => {
       setLoading(false);
     }
   };
-
+  console.log(pedidos)
   useEffect(() => {
     if (vendedorId && token) fetchPedidos();
   }, [vendedorId, token]);
@@ -102,6 +102,8 @@ const VistaPedidosVendedor = () => {
       setTimeout(() => setErrorMessage(""), 2000);
       return;
     }
+
+   
   
     // Convertir las fechas de inicio y término al horario de Chile
     const fechaInicioChile = toChileDate(startDate);
@@ -130,31 +132,28 @@ const VistaPedidosVendedor = () => {
     setErrorMessage("");
   };
 
-  const getStatusBackgroundColor = (status: string) => {
-    switch (status) {
-      case "Pendiente":
-        return "bg-yellow-300";
-      case "Entregado":
-        return "bg-green-300";
-      case "Cancelado":
-        return "bg-red-300";
-      default:
-        return "bg-gray-300";
-    }
-  };
 
   if (loading) return <div className="text-center">Cargando pedidos...</div>;
   if (error) return <div className="text-red-500 text-center">{error}</div>;
 
+  const getStatusColor = (estado: string | undefined): string => {
+    const statusColors: Record<string, string> = {
+      Pendiente: "bg-yellow-400 text-white",
+      Entregado: "bg-green-700 text-white",
+      Cancelado: "bg-red-700 text-white",
+    };
+    return statusColors[estado ?? ""] || "bg-gray-100 text-gray-800";
+  };
+  
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <header className="w-full fixed top-0 left-0 bg-white shadow-lg z-10">
         <Header navigation={[{ name: "Hacer Pedido", href: "/dashvendedor" }]} />
       </header>
-
+  
       <main className="flex-grow mt-[80px] px-4 py-8 container mx-auto">
         <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">Pedidos</h1>
-
+  
         <div className="mb-8">
           <SearchDate
             startDate={startDate}
@@ -178,18 +177,35 @@ const VistaPedidosVendedor = () => {
             </button>
           </div>
         </div>
-
+  
         {errorMessage && (
           <div className="fixed top-20 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
             {errorMessage}
           </div>
         )}
-
+  
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPedidos.map((pedido) => {
             const fecha = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES");
+  
             return (
-              <div key={pedido.ID} className="bg-white shadow-md rounded-lg overflow-hidden">
+              <div
+                key={`${pedido.ID}-${pedido.Nombre}`}
+                className={`
+                  rounded-xl 
+                  shadow-lg 
+                  hover:shadow-xl 
+                  transition-all 
+                  duration-300 
+                  overflow-hidden 
+                  cursor-pointer 
+                  transform 
+                  origin-center 
+                  flex flex-col
+                  bg-white
+                `}
+              >
+                {/* Imagen y estado */}
                 <div className="relative">
                   <img
                     src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
@@ -197,99 +213,152 @@ const VistaPedidosVendedor = () => {
                     className="w-full h-48 object-cover"
                   />
                   <div
-                    className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusBackgroundColor(pedido.Estado)}`}
+                    className={`
+                      absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(pedido.Estado)}
+                    `}
                   >
                     {pedido.Estado || "Sin estado"}
                   </div>
                 </div>
+              {/* Contenido de la card */}
+              <div className="flex-grow p-6">
+                {/* Encabezado */}
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
+                  </h2>
+                  <span className="flex items-center text-green-600 font-semibold">
+                    <DollarSign className="w-5 h-5 mr-1" />
+                    {pedido.Precio}
+                  </span>
+                </div>
 
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
-                    </h2>
-                    <span className="flex items-center text-green-600 font-semibold">
-                      <DollarSign className="w-5 h-5 mr-1" />
-                      {pedido.Precio}
-                    </span>
+                {/* Sección 1: Producción */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
+                    <Package className="w-5 h-5 mr-2 text-gray-500" />
+                    Producción
+                  </h3>
+
+                  {/* Producto */}
+                  <div className="flex items-start">
+                    <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+                    <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
                   </div>
 
-                  <div className="space-y-3">
-                    {/* Descripción */}
+                  {/* Tipo de tela */}
+                  {pedido.Tela && (
+                    <div className="flex items-center">
+                      <ClipboardList className="w-5 h-5 mr-3 text-gray-500" />
+                      <p className="text-gray-600">Tipo de tela: {pedido.Tela}</p>
+                    </div>
+                  )}
+
+                  {/* Color */}
+                  {pedido.Color && (
+                    <div className="flex items-center">
+                      <Droplet className="w-5 h-5 mr-3 text-gray-500" />
+                      <p className="text-gray-600">Color: {pedido.Color}</p>
+                    </div>
+                  )}
+
+                  {/* Observaciones */}
+                  {pedido.Observaciones && (
                     <div className="flex items-start">
-                      <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                      <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
+                      <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+                      <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
                     </div>
+                  )}
+                </div>
 
-                    {/* Tela */}
-                    {pedido.Tela && (
-                      <div className="flex items-center">
-                        <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                        <p className="text-gray-600">Tela: {pedido.Tela}</p>
-                      </div>
-                    )}
+                {/* Sección 2: Logística */}
+                <div className="space-y-3 mt-4">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
+                    <Truck className="w-5 h-5 mr-2 text-gray-500" />
+                    Logística
+                  </h3>
 
-                    {/* Color */}
-                    {pedido.Color && (
-                      <div className="flex items-center">
-                        <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                        <p className="text-gray-600">Color: {pedido.Color}</p>
-                      </div>
-                    )}
+                  {/* Despachador */}
+                  <div className="flex items-center">
+                    <User className="w-5 h-5 mr-3 text-gray-500" />
+                    <p className="text-gray-600">Despachador: {pedido.Fletero || "Sin Asignar"}</p>
+                  </div>
 
-                    {/* Dirección */}
-                    <div className="flex items-center">
-                      <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                      <p className="text-gray-600">Dirección: {pedido.Direccion}</p>
-                    </div>
+                  {/* Dirección */}
+                  <div className="flex items-center">
+                    <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                    <p className="text-gray-600">Dirección: {pedido.Direccion}</p>
+                  </div>
 
-                    {/* Forma de pago */}
-                    <div className="flex items-center">
-                      <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
-                      <p className="text-gray-600">Forma de pago: {pedido.Forma_Pago}</p>
-                    </div>
+                  {/* Número de teléfono */}
+                  <div className="flex items-center">
+                    <Phone className="w-5 h-5 mr-3 text-gray-500" />
+                    <p className="text-gray-600">Teléfono: {pedido.Nro_Tlf}</p>
+                  </div>
 
-                    {/* Observaciones */}
-                    {pedido.Observaciones && (
-                      <div className="flex items-start">
-                        <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                        <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
-                      </div>
-                    )}
+                  {/* Fecha de entrega */}
+                  <div className="flex items-center">
+  <Calendar className="w-5 h-5 mr-3 text-gray-500" />
+  <p className="text-gray-600">
+    Fecha de entrega:{" "}
+    {pedido.Fecha_Entrega
+      ? new Date(pedido.Fecha_Entrega).toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : "No especificada"}
+  </p>
+</div>
+                </div>
 
-                    {/* Fletero y comisiones */}
-                    <div className="flex flex-col space-y-2 pt-3 border-t border-gray-100">
-                      <div className="flex items-center">
-                        <Truck className="w-5 h-5 mr-2 text-gray-500" />
-                        <span className="text-gray-600">Despacho: {pedido.Fletero || "Sin Asignar"}</span>
-                      </div>
+                {/* Sección 3: Administrativa */}
+                <div className="space-y-3 mt-4">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
+                    <CreditCard className="w-5 h-5 mr-2 text-gray-500" />
+                    Administrativa
+                  </h3>
 
-                      <div className="flex items-center">
-                        <span className="text-sm text-gray-500">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</span>
-                      </div>
-                    </div>
+                  {/* Nombre del vendedor */}
+                  <div className="flex items-center">
+                    <User className="w-5 h-5 mr-3 text-gray-500" />
+                    <p className="text-gray-600">Vendedor: {pedido.Nombre_Vendedor}</p>
+                  </div>
 
-                    {/* Estado de pago */}
-                    <div className="flex items-center">
-                      <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
-                      <p className="text-gray-600">Estado de pago: {pedido.Pagado ? "Pagado" : "Pendiente"}</p>
-                    </div>
+                 
 
+                  
+                  <div className="flex items-center">
+                    <DollarSign className="w-5 h-5 mr-3 text-gray-500" />
+                    <p className="text-gray-600">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</p>
+                  </div>
 
-<div className="flex items-center">
-                      <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
-                      <p className="text-gray-600">SubVendedor: {pedido.Sub_Vendedor}</p>
-                    </div>
-                    
+                  {/* Estado de pago */}
+                  <div className="flex items-center">
+                    <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+                    <p className="text-gray-600">Estado de pago: {pedido.Pagado ? "Pagado" : "Pendiente"}</p>
+                  </div>
 
-                    {/* Fecha */}
-                    <div className="flex items-center">
-                      <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                      <p className="text-gray-600">{fecha}</p>
-                    </div>
+                  {/* Fecha de creación */}
+                  <div className="flex items-center">
+                    <Calendar className="w-5 h-5 mr-3 text-gray-500" />
+                    <p className="text-gray-600">
+                      Fecha de creación:{" "}
+                      {pedido.FechaCreacion
+                        ? new Date(pedido.FechaCreacion).toLocaleDateString("es-ES", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })
+                        : "No especificada"}
+                    </p>
                   </div>
                 </div>
               </div>
+
+              
+            
+            </div>
             );
           })}
         </div>

@@ -5,7 +5,7 @@ import { sendSalesData } from "../functions/axiosFunctionFormDataPost";
 import { useGlobalState } from "../Context/contextUser";
 import { SaleForm } from "../types";
 import { pedidoScheme } from "../validaciones/pedidoScheme";
-import { SuccessModal } from '../ReusableComponents/Exito';
+import { SuccessModal } from "../ReusableComponents/Exito";
 
 function SalesMan() {
   const { usuario } = useGlobalState();
@@ -30,6 +30,7 @@ function SalesMan() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isOpen, setIsOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,6 +83,9 @@ function SalesMan() {
       return;
     }
 
+    // Deshabilitar el botón al iniciar el envío
+    setIsSubmitting(true);
+
     const updatedSales: SaleForm = {
       ...sales,
       usuario_id: usuario.usuario_id,
@@ -120,10 +124,15 @@ function SalesMan() {
           subVendedor: "",
           Comision_Sugerida: "",
           fecha_entrega: ""
-        })
+        });
       }
     } catch (error) {
       console.error("Error al enviar el pedido:", error);
+    } finally {
+      // Vuelve a habilitar el botón después de 4 segundos
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 4000);
     }
   };
 
@@ -217,7 +226,7 @@ function SalesMan() {
                   name="fecha_entrega"
                   placeholder="Selecciona una fecha"
                   value={sales.fecha_entrega}
-                  min={new Date().toISOString().split("T")[0]} // Fecha mínima para seleccionar
+                  min={new Date().toISOString().split("T")[0]}
                   onChange={(e) => handleInputChange(e, sales, setSales)}
                   className="w-full px-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out text-sm sm:text-base"
                 />
@@ -277,6 +286,7 @@ function SalesMan() {
 
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="mt-4 sm:mt-6 bg-blue-600 text-white rounded-lg py-2.5 sm:py-3 px-6 font-medium hover:bg-blue-700 transform transition-all duration-200 ease-in-out hover:shadow-lg active:scale-[0.98] text-sm sm:text-base"
               >
                 Enviar Pedido

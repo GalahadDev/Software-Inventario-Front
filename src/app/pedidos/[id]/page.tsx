@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import React, { useState, useEffect, useMemo } from "react"; // Importar useMemo
+import React, { useState, useEffect, useMemo } from "react";
 import { Modal } from "../../ReusableComponents/Modal";
 import { useUpdateData } from "../../functions/functionPut";
 import { Pedido } from "app/types";
@@ -10,10 +10,10 @@ import { Header } from "app/ReusableComponents/Header";
 import { ComisionModal } from "app/ReusableComponents/ModalTotalMonto";
 import { usePedidosContext } from "app/Context/PedidosContext";
 import { useWebSocket } from "app/Context/WebSocketContext";
-import { SearchBar } from "app/ReusableComponents/SearchBar"; // <-- Asegúrate de importar SearchBar
+import { SearchBar } from "app/ReusableComponents/SearchBar";
 import { usePedidoActions } from "app/functions/useUpdateData";
 import { PedidosPagados } from "app/ReusableComponents/PedidosPagados";
-import { toChileDate } from "app/functions/dateUtils"; // Importar toChileDate
+import { toChileDate } from "app/functions/dateUtils";
 
 const PedidosPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -23,11 +23,11 @@ const PedidosPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [totalMonto, setTotalMonto] = useState(0);
   const [totalComisionSugerida, setTotalComisionSugerida] = useState(0);
-  const [searchTerm, setSearchTerm] = useState(""); // NUEVO: estado para el término de búsqueda
+  const [searchTerm, setSearchTerm] = useState("");
   const [localPedidos, setLocalPedidos] = useState<Pedido[]>([]);
   const [pedidosNoPagados, setPedidosNoPagados] = useState<Pedido[]>([]);
   const [pedidosPagados, setPedidosPagados] = useState<Pedido[]>([]);
-  const [showPagados, setShowPagados] = useState(false); // Estado para controlar la visibilidad
+  const [showPagados, setShowPagados] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
   const { updateData, loading: updateLoading } = useUpdateData();
@@ -38,7 +38,7 @@ const PedidosPage = () => {
   const params = useParams<{ id: string }>();
   const vendedorId = params?.id;
 
-  // Separar pedidos del vendedor en pagados y no pagados
+  // Filtrar pedidos del vendedor
   useEffect(() => {
     if (pedidos && vendedorId) {
       const pedidosDelVendedor = pedidos.filter((pedido) => pedido.UsuarioID === vendedorId);
@@ -68,7 +68,6 @@ const PedidosPage = () => {
       const fechaCreacionChile = toChileDate(new Date(pedido.FechaCreacion));
       if (isNaN(fechaCreacionChile.getTime())) return false;
 
-      // Convertir startDate y endDate a horario de Chile (si existen)
       const fechaInicioChile = startDate ? toChileDate(startDate) : null;
       const fechaTerminoChile = endDate ? toChileDate(endDate) : null;
 
@@ -76,7 +75,6 @@ const PedidosPage = () => {
         ? (fechaCreacionChile >= fechaInicioChile && fechaCreacionChile <= fechaTerminoChile)
         : true;
 
-      // NUEVO: Filtrar por término de búsqueda en todas las propiedades del pedido
       const matchesSearch = searchTerm
         ? Object.values(pedido)
             .some(value => value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()))
@@ -147,7 +145,6 @@ const PedidosPage = () => {
     let totalComision = 0;
     let totalComisionSugerida = 0;
 
-    // Ajustar las fechas para incluir todo el día
     const startOfDay = new Date(startDate);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(endDate);
@@ -201,9 +198,9 @@ const PedidosPage = () => {
     );
   }
 
-  // Función auxiliar para formatear la fecha a formato "es-ES"
-  const formattedDate = (date: string | Date) =>
-    toChileDate(new Date(date)).toLocaleDateString("es-ES");
+  // Función auxiliar para formatear fechas usando timeZone: "UTC"
+  const formattedDate = (date: string | Date, options?: Intl.DateTimeFormatOptions) =>
+    new Date(date).toLocaleDateString("es-ES", { timeZone: "UTC", ...options });
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -220,7 +217,6 @@ const PedidosPage = () => {
         />
       </header>
       <main className="flex-grow mt-[80px] px-4 py-8 container mx-auto">
-        {/* Renderizado condicional para mostrar PedidosPagados o Pedidos No Pagados */}
         {showPagados ? (
           <PedidosPagados
             pedidosPagados={pedidosPagados}
@@ -251,7 +247,6 @@ const PedidosPage = () => {
                 >
                   Ver Pedidos Pagados
                 </button>
-                {/* NUEVO: Componente para búsqueda */}
                 <SearchBar onSearch={setSearchTerm} placeholder="Buscar..." />
                 {isModalOpen && (
                   <ComisionModal
@@ -261,12 +256,14 @@ const PedidosPage = () => {
                     totalComisionSugerida={totalComisionSugerida}
                     startDate={startDate}
                     endDate={endDate}
-                    pedidosFiltrados={pedidosNoPagados.filter((pedido) => {
-                      const pedidoFecha = new Date(pedido.FechaCreacion);
-                      const fechaInicioObj = new Date(startDate!);
-                      const fechaTerminoObj = new Date(endDate!);
-                      return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
-                    }).length}
+                    pedidosFiltrados={
+                      pedidosNoPagados.filter((pedido) => {
+                        const pedidoFecha = new Date(pedido.FechaCreacion);
+                        const fechaInicioObj = new Date(startDate!);
+                        const fechaTerminoObj = new Date(endDate!);
+                        return pedidoFecha >= fechaInicioObj && pedidoFecha <= fechaTerminoObj;
+                      }).length
+                    }
                     pedidosEntregados={pedidosNoPagados.filter(
                       (pedido) => pedido.Estado === "Entregado"
                     ).length}
@@ -276,160 +273,139 @@ const PedidosPage = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 flex-grow overflow-y-auto">
               {filteredPedidos.map((pedido) => {
-                 const fechaCreacion = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES");
-                 const fechaEntrega = pedido.Fecha_Entrega && !isNaN(new Date(pedido.Fecha_Entrega).getTime())
-                   ? new Date(pedido.Fecha_Entrega).toLocaleDateString("es-ES", {
-                       year: "numeric",
-                       month: "long",
-                       day: "numeric",
-                     })
-                   : "No especificada";
+                const fechaCreacion = formattedDate(pedido.FechaCreacion);
+                const fechaEntrega = pedido.Fecha_Entrega && !isNaN(new Date(pedido.Fecha_Entrega).getTime())
+                  ? formattedDate(pedido.Fecha_Entrega, { year: "numeric", month: "long", day: "numeric" })
+                  : "No especificada";
                 return (
-              <div
-                                  key={`${pedido.ID}-${pedido.Nombre}`}
-                                  className={`
-                                    rounded-xl 
-                                    shadow-lg 
-                                    hover:shadow-xl 
-                                    transition-all 
-                                    duration-300 
-                                    overflow-hidden 
-                                    cursor-pointer 
-                                    transform 
-                                    origin-center 
-                                    flex flex-col
-                                    ${pedido.Atendido ? "bg-white" : "bg-yellow-200 animate-pulse-scale"}
-                                  `}
-                                  onClick={() => handleCardClick(pedido)}
-                                >
-                                  <div className="relative">
-                                    <img
-                                      src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
-                                      alt={`Pedido de ${pedido.Nombre}`}
-                                      className="w-full h-48 object-cover"
-                                    />
-                                    <div
-                                      className={`
-                                        absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(pedido.Estado)}
-                                      `}
-                                    >
-                                      {pedido.Estado || "Sin estado"}
-                                    </div>
-                                  </div>
-              
-                                  <div className="flex-grow p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                      <h2 className="text-xl font-semibold text-gray-800">
-                                        {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
-                                      </h2>
-                                      <span className="flex items-center text-green-600 font-semibold">
-                                        <DollarSign className="w-5 h-5 mr-1" />
-                                        {pedido.Precio}
-                                      </span>
-                                    </div>
-              
-                                    <div className="space-y-3">
-                                      <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
-                                        <Package className="w-5 h-5 mr-2 text-gray-500" />
-                                        Producción
-                                      </h3>
-              
-                                      <div className="flex items-start">
-                                        <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                                        <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
-                                      </div>
-              
-                                      {pedido.Tela && (
-                                        <div className="flex items-center">
-                                          <ClipboardList className="w-5 h-5 mr-3 text-gray-500" />
-                                          <p className="text-gray-600">Tipo de tela: {pedido.Tela}</p>
-                                        </div>
-                                      )}
-              
-                                      {pedido.Color && (
-                                        <div className="flex items-center">
-                                          <Droplet className="w-5 h-5 mr-3 text-gray-500" />
-                                          <p className="text-gray-600">Color: {pedido.Color}</p>
-                                        </div>
-                                      )}
-              
-                                      {pedido.Observaciones && (
-                                        <div className="flex items-start">
-                                          <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                                          <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
-                                        </div>
-                                      )}
-                                    </div>
-              
-                                    <div className="space-y-3 mt-4">
-                                      <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
-                                        <Truck className="w-5 h-5 mr-2 text-gray-500" />
-                                        Logística
-                                      </h3>
-              
-                                      <div className="flex items-center">
-                                        <User className="w-5 h-5 mr-3 text-gray-500" />
-                                        <p className="text-gray-600">Despachador: {pedido.Fletero || "Sin Asignar"}</p>
-                                      </div>
-              
-                                      <div className="flex items-center">
-                                        <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                                        <p className="text-gray-600">Dirección: {pedido.Direccion}</p>
-                                      </div>
-              
-                                      <div className="flex items-center">
-                                        <Phone className="w-5 h-5 mr-3 text-gray-500" />
-                                        <p className="text-gray-600">Teléfono: {pedido.Nro_Tlf}</p>
-                                      </div>
-              
-                                      <div className="flex items-center">
-                                        <Calendar className="w-5 h-5 mr-3 text-gray-500" />
-                                        <p className="text-gray-600">
-                                          Fecha de entrega: {fechaEntrega}
-                                        </p>
-                                      </div>
-                                    </div>
-              
-                                    <div className="space-y-3 mt-4">
-                                      <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
-                                        <CreditCard className="w-5 h-5 mr-2 text-gray-500" />
-                                        Administrativa
-                                      </h3>
-              
-                                      <div className="flex items-center">
-                                        <User className="w-5 h-5 mr-3 text-gray-500" />
-                                        <p className="text-gray-600">Vendedor: {pedido.Nombre_Vendedor}</p>
-                                      </div>
-              
-                                      <div className="flex items-center">
-                                        <DollarSign className="w-5 h-5 mr-3 text-gray-500" />
-                                        <p className="text-gray-600">Comisión: ${pedido.Monto || "0"}</p>
-                                      </div>
-              
-                                      <div className="flex items-center">
-                                        <DollarSign className="w-5 h-5 mr-3 text-gray-500" />
-                                        <p className="text-gray-600">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</p>
-                                      </div>
-              
-                                      <div className="flex items-center">
-                                        <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
-                                        <p className="text-gray-600">Estado de pago: {pedido.Pagado}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-              
-                                  <div className="mt-4">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleSendToWhatsApp(pedido);
-                                      }}
-                                      className="flex items-center justify-center w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition"
-                                    >
-                                      Enviar a WhatsApp
-                                    </button>
-                                  </div>
-                                </div>
+                  <div
+                    key={`${pedido.ID}-${pedido.Nombre}`}
+                    className={`
+                      rounded-xl 
+                      shadow-lg 
+                      hover:shadow-xl 
+                      transition-all 
+                      duration-300 
+                      overflow-hidden 
+                      cursor-pointer 
+                      transform 
+                      origin-center 
+                      flex flex-col
+                      ${pedido.Atendido ? "bg-white" : "bg-yellow-200 animate-pulse-scale"}
+                    `}
+                    onClick={() => handleCardClick(pedido)}
+                  >
+                    <div className="relative">
+                      <img
+                        src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
+                        alt={`Pedido de ${pedido.Nombre}`}
+                        className="w-full h-48 object-cover"
+                      />
+                      <div
+                        className={`
+                          absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(pedido.Estado)}
+                        `}
+                      >
+                        {pedido.Estado || "Sin estado"}
+                      </div>
+                    </div>
+                    <div className="flex-grow p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold text-gray-800">
+                          {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
+                        </h2>
+                        <span className="flex items-center text-green-600 font-semibold">
+                          <DollarSign className="w-5 h-5 mr-1" />
+                          {pedido.Precio}
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
+                          <Package className="w-5 h-5 mr-2 text-gray-500" />
+                          Producción
+                        </h3>
+                        <div className="flex items-start">
+                          <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+                          <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
+                        </div>
+                        {pedido.Tela && (
+                          <div className="flex items-center">
+                            <ClipboardList className="w-5 h-5 mr-3 text-gray-500" />
+                            <p className="text-gray-600">Tipo de tela: {pedido.Tela}</p>
+                          </div>
+                        )}
+                        {pedido.Color && (
+                          <div className="flex items-center">
+                            <Droplet className="w-5 h-5 mr-3 text-gray-500" />
+                            <p className="text-gray-600">Color: {pedido.Color}</p>
+                          </div>
+                        )}
+                        {pedido.Observaciones && (
+                          <div className="flex items-start">
+                            <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+                            <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-3 mt-4">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
+                          <Truck className="w-5 h-5 mr-2 text-gray-500" />
+                          Logística
+                        </h3>
+                        <div className="flex items-center">
+                          <User className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">Despachador: {pedido.Fletero || "Sin Asignar"}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">Dirección: {pedido.Direccion}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <Phone className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">Teléfono: {pedido.Nro_Tlf}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <Calendar className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">
+                            Fecha de entrega: {fechaEntrega}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="space-y-3 mt-4">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
+                          <CreditCard className="w-5 h-5 mr-2 text-gray-500" />
+                          Administrativa
+                        </h3>
+                        <div className="flex items-center">
+                          <User className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">Vendedor: {pedido.Nombre_Vendedor}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <DollarSign className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">Comisión: ${pedido.Monto || "0"}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <DollarSign className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">Estado de pago: {pedido.Pagado}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSendToWhatsApp(pedido);
+                        }}
+                        className="flex items-center justify-center w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition"
+                      >
+                        Enviar a WhatsApp
+                      </button>
+                    </div>
+                  </div>
                 );
               })}
             </div>

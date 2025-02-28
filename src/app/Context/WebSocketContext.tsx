@@ -1,8 +1,9 @@
 "use client";
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
-import { useGlobalState } from "./contextUser";
+import { useGlobalState } from "./contextUser"; // Asegúrate de que la ruta sea correcta
+import { usePedidosContext } from "./PedidosContext"; // Asegúrate de que la ruta sea correcta
 import { toast } from "react-toastify";
-import { usePedidosContext } from "./PedidosContext";
+import "react-toastify/dist/ReactToastify.css";
 
 interface WebSocketContextType {
   isConnected: boolean;
@@ -20,8 +21,8 @@ interface WebSocketProviderProps {
 }
 
 export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
-  const { usuario } = useGlobalState();
-  const { addPedido, updatePedido } = usePedidosContext();
+  const { usuario } = useGlobalState(); // Accede al contexto de GlobalStateProvider
+  const { addPedido, updatePedido } = usePedidosContext(); // Accede al contexto de PedidosProvider
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
@@ -32,6 +33,32 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const role = usuario?.rol || null;
   const shouldReconnect = useRef(true);
 
+  // Función para mostrar notificaciones persistentes
+  const mostrarNotificacionPersistente = (titulo: string, cuerpo: string) => {
+    if (Notification.permission === "granted") {
+      const notificacion = new Notification(titulo, {
+        body: cuerpo,
+        icon: "/notificacion.png", // Ruta del ícono PNG
+        tag: "notificacion-persistente",
+      });
+
+      // Manejar el clic en la notificación
+      notificacion.onclick = function (event) {
+        event.preventDefault();
+        window.focus();
+        notificacion.close();
+        window.location.href = "/pedidosGenerales"; // Redirección
+      };
+    } else if (Notification.permission !== "denied") {
+      // Solicitar permisos si no se han concedido
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          mostrarNotificacionPersistente(titulo, cuerpo);
+        }
+      });
+    }
+  };
+
   useEffect(() => {
     if (newOrder) {
       const alarmSound = new Audio("https://wduloqcugbdlwmladawq.supabase.co/storage/v1/object/public/imagenes-pedidos/src/lineage_2_quest.mp3");
@@ -39,6 +66,13 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         console.error("Error al reproducir el sonido de la alarma:", error);
       });
 
+      // Mostrar notificación persistente
+      mostrarNotificacionPersistente(
+        "¡Nuevo pedido recibido!",
+        "Revisa el nuevo pedido en la aplicación."
+      );
+
+      // Mostrar toast en pantalla
       toast.info("¡Nuevo pedido recibido!", {
         position: "bottom-right",
         autoClose: 3000,
@@ -63,7 +97,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     const baseUrl = process.env.NEXT_PUBLIC_WS_URL;
     const url = `${baseUrl}?token=${token}`;
-    
 
     setIsConnecting(true);
     shouldReconnect.current = true;
@@ -72,13 +105,11 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     ws.current.onopen = () => {
       setIsConnected(true);
       setIsConnecting(false);
-      
     };
 
     ws.current.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-       
 
         setMessages((prev) => [...prev, message]);
 
@@ -96,7 +127,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     ws.current.onclose = () => {
       setIsConnected(false);
       setIsConnecting(false);
-      
 
       if (shouldReconnect.current) {
         setTimeout(() => connectWebSocket(), 5000);
@@ -128,14 +158,16 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   }, [token, role]);
 
   return (
-    <WebSocketContext.Provider value={{
-      isConnected,
-      isConnecting,
-      sendMessage,
-      messages,
-      newOrder,
-      disconnectWebSocket,
-    }}>
+    <WebSocketContext.Provider
+      value={{
+        isConnected,
+        isConnecting,
+        sendMessage,
+        messages,
+        newOrder,
+        disconnectWebSocket,
+      }}
+    >
       {children}
     </WebSocketContext.Provider>
   );

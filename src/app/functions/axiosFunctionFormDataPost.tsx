@@ -24,6 +24,7 @@ export const sendSalesData = async (sales: SaleForm) => {
     formData.append("color", sales.color)
     formData.append("sub_vendedor", sales.subVendedor)
     formData.append("comision_sugerida",sales.Comision_Sugerida.toString()); 
+    formData.append("fecha_entrega", sales.fecha_entrega)
     if (sales.usuario_id) {
       formData.append("usuario_id", sales.usuario_id.toString());
     } else {

@@ -19,7 +19,8 @@ export interface Pedido {
     Tela:String,
     Color:string,
     Sub_Vendedor:string
-    Comision_Sugerida: string
+    Comision_Sugerida: string,
+    Fecha_Entrega: Date
 
   }
 
@@ -70,6 +71,7 @@ export type SaleForm = {
   color:string,
   subVendedor:string
   Comision_Sugerida:string
+  fecha_entrega: string
 };
 export type StatusColor = {
   [key in 'pendiente' | 'en proceso' | 'completado' | 'cancelado']: string;
@@ -82,7 +84,7 @@ export interface PageProps<T> {
 export interface User {
   ID: string;
   Nombre: string;
-  Email?: string;
+  Email: string;
   usuario?: string;
   Rol: string;
   Contrasena: string;

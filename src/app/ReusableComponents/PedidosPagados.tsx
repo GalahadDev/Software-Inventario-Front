@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useMemo } from "react";
 import { Pedido } from "app/types";
-import { DollarSign, CreditCard, Truck, Package, MapPin, ClipboardList } from "lucide-react";
+import { DollarSign, CreditCard, Truck, Package, MapPin, ClipboardList, Droplet, Calendar } from "lucide-react";
 import { ComisionModal } from "app/ReusableComponents/ModalTotalMonto";
 import { toChileDate } from "app/functions/dateUtils";
 import { SearchDate } from "app/ReusableComponents/SearchDate";
@@ -134,89 +134,137 @@ export const PedidosPagados: React.FC<PedidosPagadosProps> = ({ pedidosPagados, 
 
       {/* Lista de pedidos pagados filtrados */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPedidos.map((pedido) => (
-          <div
-            key={pedido.ID}
-            className="rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-white"
-          >
-            <div className="relative">
-              <img
-                src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
-                alt={`Pedido de ${pedido.Nombre}`}
-                className="w-full h-48 object-cover"
-              />
-              <div
-                className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(pedido.Estado)}`}
-              >
-                {pedido.Estado || "Sin estado"}
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
-                </h2>
-                <span className="flex items-center text-green-600 font-semibold">
-                  <DollarSign className="w-5 h-5 mr-1" />
-                  {pedido.Precio}
-                </span>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-start">
-                  <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                  <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
-                </div>
-                {pedido.Tela && (
-                  <div className="flex items-center">
-                    <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                    <p className="text-gray-600">Tela: {pedido.Tela}</p>
-                  </div>
-                )}
-                {pedido.Color && (
-                  <div className="flex items-center">
-                    <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                    <p className="text-gray-600">Color: {pedido.Color}</p>
-                  </div>
-                )}
-                <div className="flex items-center">
-                  <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                  <p className="text-gray-600">Dirección: {pedido.Direccion}</p>
-                </div>
-                <div className="flex items-center">
-                  <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
-                  <p className="text-gray-600">Forma de pago: {pedido.Forma_Pago}</p>
-                </div>
-                {pedido.Observaciones && (
-                  <div className="flex items-start">
-                    <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
-                    <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
-                  </div>
-                )}
-                <div className="flex flex-col space-y-2 pt-3 border-t border-gray-100">
-                  <div className="flex items-center">
-                    <Truck className="w-5 h-5 mr-2 text-gray-500" />
-                    <span className="text-gray-600">Despacho: {pedido.Fletero || "Sin Asignar"}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-sm text-gray-500">Comisión: ${pedido.Monto || "0"}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-sm text-gray-500">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</span>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
-                  <p className="text-gray-600">Estado de pago: {pedido.Pagado ? "Pagado" : "Pendiente"}</p>
-                </div>
-                <div className="flex items-center">
-                  <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                  <p className="text-gray-600">{formatDate(pedido.FechaCreacion)}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+  {filteredPedidos.map((pedido) => (
+    <div
+      key={pedido.ID}
+      className="rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-white"
+    >
+      {/* Imagen y estado */}
+      <div className="relative">
+        <img
+          src={pedido.Imagen || "https://images.1sticket.com/landing_page_20191025154518_107273.png"}
+          alt={`Pedido de ${pedido.Nombre}`}
+          className="w-full h-48 object-cover"
+        />
+        <div
+          className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(pedido.Estado)}`}
+        >
+          {pedido.Estado || "Sin estado"}
+        </div>
       </div>
+
+      {/* Contenido de la card */}
+      <div className="p-6">
+        {/* Encabezado */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">
+            {pedido.Nombre} <span className="text-sm text-gray-500">(ID: {pedido.ID})</span>
+          </h2>
+          <span className="flex items-center text-green-600 font-semibold">
+            <DollarSign className="w-5 h-5 mr-1" />
+            {pedido.Precio}
+          </span>
+        </div>
+
+        {/* Sección 1: Producción */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
+            <Package className="w-5 h-5 mr-2 text-gray-500" />
+            Producción
+          </h3>
+
+          {/* Producto */}
+          <div className="flex items-start">
+            <Package className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+            <p className="text-gray-600">Producto: {pedido.Descripcion}</p>
+          </div>
+
+          {/* Tipo de tela */}
+          {pedido.Tela && (
+            <div className="flex items-center">
+              <ClipboardList className="w-5 h-5 mr-3 text-gray-500" />
+              <p className="text-gray-600">Tipo de tela: {pedido.Tela}</p>
+            </div>
+          )}
+
+          {/* Color */}
+          {pedido.Color && (
+            <div className="flex items-center">
+              <Droplet className="w-5 h-5 mr-3 text-gray-500" />
+              <p className="text-gray-600">Color: {pedido.Color}</p>
+            </div>
+          )}
+
+          {/* Observaciones */}
+          {pedido.Observaciones && (
+            <div className="flex items-start">
+              <ClipboardList className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0 mt-1" />
+              <p className="text-gray-600">Observaciones: {pedido.Observaciones}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Sección 2: Logística */}
+        <div className="space-y-3 mt-4">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
+            <Truck className="w-5 h-5 mr-2 text-gray-500" />
+            Logística
+          </h3>
+
+          {/* Dirección */}
+          <div className="flex items-center">
+            <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+            <p className="text-gray-600">Dirección: {pedido.Direccion}</p>
+          </div>
+
+          {/* Despachador */}
+          <div className="flex items-center">
+            <Truck className="w-5 h-5 mr-3 text-gray-500" />
+            <p className="text-gray-600">Despacho: {pedido.Fletero || "Sin Asignar"}</p>
+          </div>
+
+          {/* Forma de pago */}
+          <div className="flex items-center">
+            <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+            <p className="text-gray-600">Forma de pago: {pedido.Forma_Pago}</p>
+          </div>
+        </div>
+
+        {/* Sección 3: Administrativa */}
+        <div className="space-y-3 mt-4">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center">
+            <CreditCard className="w-5 h-5 mr-2 text-gray-500" />
+            Administrativa
+          </h3>
+
+          {/* Comisión */}
+          <div className="flex items-center">
+            <DollarSign className="w-5 h-5 mr-3 text-gray-500" />
+            <p className="text-gray-600">Comisión: ${pedido.Monto || "0"}</p>
+          </div>
+
+          {/* Comisión del vendedor */}
+          <div className="flex items-center">
+            <DollarSign className="w-5 h-5 mr-3 text-gray-500" />
+            <p className="text-gray-600">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</p>
+          </div>
+
+          {/* Estado de pago */}
+          <div className="flex items-center">
+            <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
+            <p className="text-gray-600">Estado de pago: {pedido.Pagado ? "Pagado" : "Pendiente"}</p>
+          </div>
+
+          {/* Fecha de creación */}
+          <div className="flex items-center">
+            <Calendar className="w-5 h-5 mr-3 text-gray-500" />
+            <p className="text-gray-600">{formatDate(pedido.FechaCreacion)}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
 
       {/* Modal de comisiones */}
       {isModalOpen && (

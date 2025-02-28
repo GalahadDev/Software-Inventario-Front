@@ -13,7 +13,7 @@ import { SearchBar } from "../ReusableComponents/SearchBar";
 import { usePedidoActions } from "../functions/useUpdateData";
 import { PedidosPagados } from "../ReusableComponents/PedidosPagados";
 import { toChileDate } from "app/functions/dateUtils";
-import {  handleSendToWhatsAppFletero } from "app/functions/hadleWhatsAppFletero"
+import { handleSendToWhatsAppFletero } from "app/functions/hadleWhatsAppFletero";
 
 const PedidosPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -105,8 +105,7 @@ const PedidosPage = () => {
     if (!pedidosNoPagados) return [];
 
     const sortedPedidos = [...pedidosNoPagados].sort((a, b) =>
-      toChileDate(new Date(b.FechaCreacion)).getTime() -
-      toChileDate(new Date(a.FechaCreacion)).getTime()
+      toChileDate(new Date(b.FechaCreacion)).getTime() - toChileDate(new Date(a.FechaCreacion)).getTime()
     );
 
     return sortedPedidos.filter((pedido) => {
@@ -122,10 +121,10 @@ const PedidosPage = () => {
 
       const matchesSearch = searchTerm
         ? Object.values(pedido)
-          .filter((value) => value !== null && value !== undefined)
-          .some((value) =>
-            value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-          )
+            .filter((value) => value !== null && value !== undefined)
+            .some((value) =>
+              value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+            )
         : true;
 
       return isInRange && matchesSearch;
@@ -176,8 +175,6 @@ const PedidosPage = () => {
     window.open(url, "_blank");
   };
 
-  
-
   const updateMonto = async (
     id: number,
     monto: number,
@@ -195,7 +192,6 @@ const PedidosPage = () => {
       }
 
       await updateData(`/pedidos/${id}`, { monto, fletero, estado, atendido: Atendido, pagado });
-
       setShowModal(false);
     } catch (error) {
       console.error("Error al actualizar el monto:", error);
@@ -274,12 +270,16 @@ const PedidosPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 flex-grow overflow-y-auto">
               {filteredPedidos.map((pedido) => {
-                const fechaCreacion = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES");
+                // Para evitar el desfase, se usa la opción timeZone: "UTC"
+                const fechaCreacion = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES", {
+                  timeZone: "UTC"
+                });
                 const fechaEntrega = pedido.Fecha_Entrega && !isNaN(new Date(pedido.Fecha_Entrega).getTime())
                   ? new Date(pedido.Fecha_Entrega).toLocaleDateString("es-ES", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
+                      timeZone: "UTC"
                     })
                   : "No especificada";
 
@@ -437,7 +437,6 @@ const PedidosPage = () => {
                       >
                         Enviar a Fletero
                       </button>
-
                     </div>
                   </div>
                 );

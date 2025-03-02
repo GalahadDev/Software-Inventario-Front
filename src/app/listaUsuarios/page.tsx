@@ -19,6 +19,16 @@ function UserList() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
+
+  const navigation = [
+    { name: "Ver Vendedores", href: "/listaVendedores" },
+    { name: "Ver Pedidos", href: "/pedidosGenerales" },
+    { name: "Crear Usuario", href: "/crearVendedor" },
+    { name: "Crear Pedido", href: "/vendedorAdm" },
+    { name: "Usuarios", href: "/listaUsuarios" },
+    { name: "Galeria", href: "/galeria" }
+  ];
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -90,13 +100,7 @@ function UserList() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 min-h-screen flex flex-col">
-      <Header navigation={ { name: "Ver Vendedores", href: "/listaVendedores" },
-  { name: "Ver Pedidos", href: "/pedidosGenerales" },
-  { name: "Crear Usuario", href: "/crearVendedor" },
-  { name: "Crear Pedido", href: "/vendedorAdm" },
-  { name: "Usuarios", href: "/listaUsuarios" },
-  { name: "Galeria", href: "/galeria" }
-];} />
+      <Header navigation={ navigation }/>
 
       <h1 className="text-4xl font-extrabold text-gray-900 text-center mt-8 mb-8">
         Lista de Usuarios

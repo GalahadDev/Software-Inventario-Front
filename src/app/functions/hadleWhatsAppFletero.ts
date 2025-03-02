@@ -19,7 +19,6 @@ export const handleSendToWhatsAppFletero = (pedido: Pedido) => {
       Color: ${color}
       Direccion: ${direccion}
       Fecha de Entrega: ${fechaEntrega}
-      Fecha Creacion: ${fechaCreacion}
       Telefono: ${telefono}
       Vendedor: ${vendedor}
       Imagen: ${imagen}

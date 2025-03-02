@@ -22,7 +22,7 @@ export const handleSendToWhatsAppFletero = (pedido: Pedido) => {
       Telefono: ${telefono}
       Vendedor: ${vendedor}
       Imagen: ${imagen}
-      Grupo de WhatsApp: https://chat.whatsapp.com/Dxiz1ImYMJaCg9ibEN58ay
+      
     `;
 
     const mensajeCodificado = encodeURIComponent(mensaje);

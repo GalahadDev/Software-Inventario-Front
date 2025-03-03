@@ -22,7 +22,6 @@ export const handleSendToWhatsAppFletero = (pedido: Pedido) => {
       Telefono: ${telefono}
       Vendedor: ${vendedor}
       Imagen: ${imagen}
-      
     `;
 
     const mensajeCodificado = encodeURIComponent(mensaje);

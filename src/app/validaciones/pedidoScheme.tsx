@@ -37,11 +37,7 @@ export const pedidoScheme = z.object({
       { message: "Solo se permiten imágenes en formato JPG, JPEG o PNG" }
     ),
 
-  // ID de Usuario
-  usuario_id: z
-    .number({ required_error: "El ID de usuario es obligatorio", invalid_type_error: "El ID de usuario debe ser un número" }), // Requerido
 
-  // Número de Teléfono
   nro_tlf: z
     .string({ required_error: "El número de teléfono es obligatorio" }) // Requerido
     .min(9, "El número de teléfono debe tener al menos 9 dígitos")

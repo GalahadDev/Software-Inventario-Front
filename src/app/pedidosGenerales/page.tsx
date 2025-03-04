@@ -269,9 +269,7 @@ const PedidosPage = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 flex-grow overflow-y-auto">
-              {filteredPedidos
-              .sort((a, b) => b.ID - a.ID)
-              .map((pedido) => {
+              {filteredPedidos.map((pedido) => {
                 // Para evitar el desfase, se usa la opción timeZone: "UTC"
                 const fechaCreacion = new Date(pedido.FechaCreacion).toLocaleDateString("es-ES", {
                   timeZone: "UTC"
@@ -416,12 +414,6 @@ const PedidosPage = () => {
                           <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
                           <p className="text-gray-600">Estado de pago: {pedido.Pagado}</p>
                         </div>
-                         <div className="flex items-center">
-                                                  <Calendar className="w-5 h-5 mr-3 text-gray-500" />
-                                                  <p className="text-gray-600">
-                                                    Fecha Creacion: {fechaCreacion}
-                                                  </p>
-                                                </div>
                       </div>
                     </div>
 

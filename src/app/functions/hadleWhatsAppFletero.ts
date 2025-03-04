@@ -19,9 +19,11 @@ export const handleSendToWhatsAppFletero = (pedido: Pedido) => {
       Color: ${color}
       Direccion: ${direccion}
       Fecha de Entrega: ${fechaEntrega}
+      Fecha Creacion: ${fechaCreacion}
       Telefono: ${telefono}
       Vendedor: ${vendedor}
       Imagen: ${imagen}
+      Grupo de WhatsApp: https://chat.whatsapp.com/Dxiz1ImYMJaCg9ibEN58ay
     `;
 
     const mensajeCodificado = encodeURIComponent(mensaje);

@@ -14,6 +14,7 @@ import { SearchBar } from "app/ReusableComponents/SearchBar";
 import { usePedidoActions } from "app/functions/useUpdateData";
 import { PedidosPagados } from "app/ReusableComponents/PedidosPagados";
 import { toChileDate } from "app/functions/dateUtils";
+import { handleSendToWhatsAppFletero } from "app/functions/hadleWhatsAppFletero";
 
 const PedidosPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -272,7 +273,9 @@ const PedidosPage = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 flex-grow overflow-y-auto">
-              {filteredPedidos.map((pedido) => {
+              {filteredPedidos
+              .sort((a, b) => a.ID - b.ID)
+              .map((pedido) => {
                 const fechaCreacion = formattedDate(pedido.FechaCreacion);
                 const fechaEntrega = pedido.Fecha_Entrega && !isNaN(new Date(pedido.Fecha_Entrega).getTime())
                   ? formattedDate(pedido.Fecha_Entrega, { year: "numeric", month: "long", day: "numeric" })
@@ -392,9 +395,15 @@ const PedidosPage = () => {
                           <CreditCard className="w-5 h-5 mr-3 text-gray-500" />
                           <p className="text-gray-600">Estado de pago: {pedido.Pagado}</p>
                         </div>
+                        <div className="flex items-center">
+                          <Calendar className="w-5 h-5 mr-3 text-gray-500" />
+                          <p className="text-gray-600">
+                            Fecha Creacion: {fechaCreacion}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <div className="mt-4">
+                    <div className="mt-4 gap-2 flex- felx-col">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -404,6 +413,15 @@ const PedidosPage = () => {
                       >
                         Enviar a WhatsApp
                       </button>
+                      <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleSendToWhatsAppFletero(pedido);
+                                              }}
+                                              className="flex items-center justify-center w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition"
+                                            >
+                                              Enviar a Fletero
+                                            </button>
                     </div>
                   </div>
                 );

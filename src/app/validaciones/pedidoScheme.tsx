@@ -19,7 +19,6 @@ export const pedidoScheme = z.object({
       (file) => ["image/jpeg", "image/jpg", "image/png"].includes(file.type),
       "Solo se permiten imágenes en formato JPG, JPEG o PNG"
     ),
-
   nro_tlf: z
     .string()
     .min(9, "El número de teléfono debe tener al menos 9 dígitos")

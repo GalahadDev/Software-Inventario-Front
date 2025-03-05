@@ -50,15 +50,6 @@ function UserList() {
     setIsDeleteModalOpen(false);
   };
 
-  const navigation = [
-    { name: "Ver Vendedores", href: "/listaVendedores" },
-    { name: "Ver Pedidos", href: "/pedidosGenerales" },
-    { name: "Crear Usuario", href: "/crearVendedor" },
-    { name: "Crear Pedido", href: "/vendedorAdm" },
-    { name: "Usuarios", href: "/listaUsuarios" },
-    { name: "Galeria", href: "/galeria" }
-  ];
-
   const handleSendToWhatsApp = (email: string) => {
     if (!email) {
       alert("No hay un correo electrónico para enviar.");
@@ -99,7 +90,7 @@ function UserList() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 min-h-screen flex flex-col">
-      <Header navigation={navigation} />
+      <Header navigation={[{ name: "Usuarios", href: "/listaUsuarios" }]} />
 
       <h1 className="text-4xl font-extrabold text-gray-900 text-center mt-8 mb-8">
         Lista de Usuarios

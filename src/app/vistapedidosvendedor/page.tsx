@@ -303,6 +303,10 @@ const VistaPedidosVendedor = () => {
                       <p className="text-gray-600">Vendedor: {pedido.Nombre_Vendedor}</p>
                     </div>
                     <div className="flex items-center">
+                      <User className="w-5 h-5 mr-3 text-gray-500" />
+                      <p className="text-gray-600">Sub-Vendedor: {pedido.Sub_Vendedor}</p>
+                    </div>
+                    <div className="flex items-center">
                       <DollarSign className="w-5 h-5 mr-3 text-gray-500" />
                       <p className="text-gray-600">Comisión (Vendedor): ${pedido.Comision_Sugerida || "0"}</p>
                     </div>

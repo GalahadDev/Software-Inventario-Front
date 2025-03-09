@@ -8,7 +8,7 @@ export const handleSendToWhatsAppFletero = (pedido: Pedido) => {
     const imagen = pedido.Imagen || "Sin imagen";
     const direccion = pedido.Direccion || "Sin Direccion";
     const fechaEntrega = pedido.Fecha_Entrega
-    const fechaCreacion = pedido.FechaCreacion
+    const precio = pedido.Precio
     const telefono = pedido.Nro_Tlf
     const vendedor = pedido.Nombre_Vendedor 
     const mensaje = `
@@ -22,6 +22,7 @@ export const handleSendToWhatsAppFletero = (pedido: Pedido) => {
       Telefono: ${telefono}
       Vendedor: ${vendedor}
       Imagen: ${imagen}
+      Precio: ${precio}
     `;
 
     const mensajeCodificado = encodeURIComponent(mensaje);

@@ -13,6 +13,7 @@ export const handleSendToWhatsAppFletero = (pedido: Pedido) => {
     const vendedor = pedido.Nombre_Vendedor 
     const mensaje = `
       Nro de Pedido: ${pedido.ID}
+      Precio: ${precio}
       Descripción: ${pedido.Descripcion}
       Observaciones: ${observaciones}
       Tipo de Tela: ${tela}
@@ -22,7 +23,7 @@ export const handleSendToWhatsAppFletero = (pedido: Pedido) => {
       Telefono: ${telefono}
       Vendedor: ${vendedor}
       Imagen: ${imagen}
-      Precio: ${precio}
+      
     `;
 
     const mensajeCodificado = encodeURIComponent(mensaje);
